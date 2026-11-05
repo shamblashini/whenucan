@@ -1,0 +1,507 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Familjen Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --color-paper: var(--paper);
+  --color-sheet: var(--sheet);
+  --color-ink: var(--ink);
+  --color-soft: var(--soft);
+  --color-rule: var(--rule);
+  --color-yes: var(--yes);
+  --color-ok: var(--ok);
+  --color-no: var(--no);
+  --color-on-mark: var(--on-mark);
+  --color-danger: var(--danger);
+}
+
+:root {
+  color-scheme: light dark;
+  --paper: #f3f6fd;
+  --sheet: #fbfcff;
+  --ink: #1b2559;
+  --soft: #535e8c;
+  --rule: #c8d2ea;
+  --dot: #d5ddf0;
+  --yes: #6be39a;
+  --ok: #ffe04a;
+  --no: #ff9bae;
+  --on-mark: #141a3f;
+  --danger: #b4173a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #151b42;
+    --sheet: #1b2250;
+    --ink: #eef1ff;
+    --soft: #aab3da;
+    --rule: #38417a;
+    --dot: #252d60;
+    --danger: #ff9bae;
+  }
+}
+
+body {
+  background-color: var(--paper);
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 100dvh;
+}
+
+/* Keeps the footer at the bottom of the screen when a page is short. */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+#root > :not(dialog) {
+  width: 100%;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@layer components {
+  .wordmark {
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 1.1rem;
+    border-radius: 0.6rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 80ms ease;
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .btn-plain {
+    background: var(--sheet);
+    border: 1.5px solid var(--ink);
+  }
+  .btn-quiet {
+    min-height: 2.25rem;
+    padding: 0.25rem 0.5rem;
+    color: var(--soft);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .btn-quiet:hover {
+    color: var(--ink);
+  }
+  .btn-danger {
+    background: var(--sheet);
+    border: 1.5px solid var(--danger);
+    color: var(--danger);
+  }
+  .btn-google {
+    background: #fff;
+    color: #1f1f1f;
+    border: 1.5px solid #747775;
+  }
+
+  .field {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--sheet);
+    border: 1.5px solid var(--ink);
+    border-radius: 0.5rem;
+    color: var(--ink);
+  }
+  .field:focus-visible {
+    outline-width: 2px;
+    outline-offset: 1px;
+    border-radius: 0.5rem;
+  }
+  .field::placeholder {
+    color: var(--soft);
+  }
+  .label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+  }
+
+  /* Marker tray: the three pens you choose between. */
+  .pen {
+    position: relative;
+    display: inline-flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 3rem;
+    padding: 0 0.9rem;
+    border: 2px solid transparent;
+    border-radius: 0.7rem 1.1rem 0.9rem 0.6rem / 0.9rem 0.6rem 1.1rem 0.7rem;
+    color: var(--on-mark);
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 100ms ease;
+  }
+  .pen[data-v="yes"] { background: var(--yes); }
+  .pen[data-v="ok"] { background: var(--ok); }
+  .pen[data-v="no"] { background: var(--no); }
+  .pen[data-dim="true"] {
+    background: transparent;
+    border-color: var(--rule);
+    color: var(--ink);
+  }
+  .pen[data-dim="true"]:hover {
+    border-color: var(--ink);
+  }
+  .pen[data-picked="true"] {
+    border-color: var(--ink);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 0 var(--ink);
+  }
+
+  /* The day grid. */
+  .day {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    min-height: 2.6rem;
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    border-radius: 0.3rem;
+    color: var(--ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-y;
+    overflow: hidden;
+  }
+  .day:disabled {
+    background: transparent;
+    border-style: dashed;
+    color: var(--soft);
+    cursor: default;
+    opacity: 0.7;
+  }
+  .day:hover:not(:disabled) {
+    border-color: var(--ink);
+  }
+  .day[data-selected="true"] {
+    outline: 3px solid var(--ink);
+    outline-offset: 1px;
+  }
+  .day-num {
+    position: absolute;
+    top: 0.2rem;
+    left: 0.35rem;
+    z-index: 2;
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+  .day[data-today="true"] .day-num {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 2px;
+  }
+  .day-glyph {
+    position: absolute;
+    right: 0.25rem;
+    top: 0.25rem;
+    z-index: 2;
+    width: 0.85rem;
+    height: 0.85rem;
+    color: var(--on-mark);
+  }
+
+  /* A highlighter stroke: uneven ends, slightly off square, like it was drawn by hand. */
+  .mark {
+    position: absolute;
+    inset: 3px 1px;
+    z-index: 1;
+    border-radius: 5px 11px 4px 13px / 12px 5px 11px 4px;
+    transform: rotate(-1.2deg);
+  }
+  .mark[data-shape="1"] {
+    inset: 2px 2px 4px 1px;
+    border-radius: 11px 4px 13px 5px / 5px 12px 4px 11px;
+    transform: rotate(0.9deg);
+  }
+  .mark[data-shape="2"] {
+    inset: 4px 1px 2px 2px;
+    border-radius: 4px 13px 5px 11px / 11px 4px 12px 5px;
+    transform: rotate(-0.5deg);
+  }
+  .mark-yes { background: var(--yes); }
+  /* OK is a lighter, hatched stroke so it differs from yes without relying on colour. */
+  .mark-ok {
+    background: repeating-linear-gradient(115deg, var(--ok) 0 7px, color-mix(in srgb, var(--ok) 40%, #fff) 7px 11px);
+  }
+  /* No is crossed out, on the diagonal that leaves the day number clear. */
+  .mark-no {
+    background:
+      linear-gradient(to bottom right, transparent calc(50% - 1.5px), var(--on-mark) calc(50% - 1.5px), var(--on-mark) calc(50% + 1.5px), transparent calc(50% + 1.5px)),
+      var(--no);
+  }
+  .day:has(.mark) .day-num {
+    color: var(--on-mark);
+  }
+  .mark.sweep {
+    animation: sweep 140ms ease-out;
+  }
+
+  /* Small tally of everyone's answers at the foot of a cell. */
+  .tally {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    bottom: 3px;
+    z-index: 2;
+    display: flex;
+    gap: 1px;
+    height: 5px;
+    border-radius: 2px;
+    overflow: hidden;
+    outline: 1px solid color-mix(in srgb, var(--on-mark) 30%, transparent);
+  }
+  .tally span { display: block; }
+  .bg-yes-solid { background: #1fb765; }
+  .bg-ok-solid { background: #e8b800; }
+  .bg-no-solid { background: #e8476a; }
+
+  /* Everyone view: each day fills up like a small stacked column. */
+  .stack {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .stack span { display: block; }
+  /* A cell can be anything from empty to full, so its text sits on its own small label. */
+  .day:has(.stack) .day-num {
+    top: 0.15rem;
+    left: 0.15rem;
+    padding: 0 0.2rem;
+    background: var(--sheet);
+    border-radius: 0.2rem;
+  }
+  .day-count {
+    position: absolute;
+    right: 0.15rem;
+    bottom: 0.15rem;
+    z-index: 2;
+    padding: 0 0.2rem;
+    background: var(--sheet);
+    border-radius: 0.2rem;
+    font-size: 0.72rem;
+    line-height: 1.3;
+  }
+  .day[data-best="true"] {
+    border: 2.5px solid var(--ink);
+  }
+
+  /* Range picker. */
+  .range-day {
+    aspect-ratio: 1;
+    min-height: 2.5rem;
+    width: 100%;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 0.3rem;
+  }
+  .range-day:hover:not(:disabled):not([data-state]) {
+    outline: 1.5px solid var(--ink);
+    outline-offset: -1.5px;
+  }
+  .range-day:disabled {
+    color: var(--soft);
+    opacity: 0.45;
+    cursor: default;
+  }
+  .range-day[data-state="in"] {
+    background: color-mix(in srgb, var(--yes) 45%, transparent);
+    border-radius: 0;
+  }
+  .range-day[data-state="end"] {
+    background: var(--yes);
+    color: var(--on-mark);
+    font-weight: 700;
+  }
+
+  /* Best days: a tear-off calendar page beside a strip with one stroke per person. */
+  .best-day {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.75rem 0.25rem;
+    text-align: left;
+    cursor: pointer;
+  }
+  .best-day:hover .leaf {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 0 var(--ink);
+  }
+  .leaf {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    width: 4.25rem;
+    background: var(--sheet);
+    border: 1.5px solid var(--ink);
+    border-radius: 0.45rem;
+    text-align: center;
+    overflow: hidden;
+    transition: transform 100ms ease;
+  }
+  .leaf-top {
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .leaf-day {
+    position: relative;
+    margin: 0.3rem 0.4rem 0;
+    font-size: 1.7rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+  }
+  /* The best date is circled in biro. */
+  .leaf-day svg {
+    position: absolute;
+    inset: -0.15rem -0.1rem;
+    width: calc(100% + 0.2rem);
+    height: calc(100% + 0.3rem);
+    overflow: visible;
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .leaf-day svg path {
+    vector-effect: non-scaling-stroke;
+  }
+  .leaf-month {
+    padding-bottom: 0.2rem;
+    color: var(--soft);
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  .who {
+    display: flex;
+    gap: 3px;
+    height: 1.35rem;
+    margin: 0.25rem 0;
+  }
+  .who[data-dense="true"] {
+    gap: 0;
+  }
+  .who span {
+    display: block;
+    flex: 1 1 0;
+    min-width: 0;
+    border-radius: 3px 5px 3px 6px / 5px 3px 6px 3px;
+  }
+  .who[data-dense="true"] span {
+    border-radius: 0;
+  }
+  .who-waiting {
+    border: 1.5px dashed var(--rule);
+  }
+  .who[data-dense="true"] .who-waiting {
+    border-width: 1.5px 0;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.25rem;
+    padding: 0.2rem 0.75rem;
+    border: 1.5px solid var(--rule);
+    border-radius: 999px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .chip:hover {
+    border-color: var(--ink);
+  }
+
+  .vote {
+    display: inline-flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    min-width: 4rem;
+    min-height: 2.75rem;
+    padding: 0 0.7rem;
+    border: 1.5px solid var(--rule);
+    border-radius: 0.6rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .vote:hover {
+    border-color: var(--ink);
+  }
+  .vote[aria-pressed="true"] {
+    border-color: var(--ink);
+    color: var(--on-mark);
+  }
+  .vote[aria-pressed="true"][data-v="yes"] { background: var(--yes); }
+  .vote[aria-pressed="true"][data-v="ok"] { background: var(--ok); }
+  .vote[aria-pressed="true"][data-v="no"] { background: var(--no); }
+
+  dialog.sheet {
+    width: min(34rem, calc(100vw - 1.5rem));
+    max-height: calc(100dvh - 1.5rem);
+    margin: auto;
+    padding: 1.25rem;
+    background: var(--sheet);
+    border: 2px solid var(--ink);
+    border-radius: 0.9rem;
+    color: var(--ink);
+    overflow: auto;
+  }
+  dialog.sheet::backdrop {
+    background: rgb(15 20 55 / 0.55);
+  }
+}
+
+@keyframes sweep {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark.sweep { animation: none; }
+  .btn, .pen, .leaf { transition: none; }
+}

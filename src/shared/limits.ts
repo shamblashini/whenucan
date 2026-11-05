@@ -1,0 +1,16 @@
+export const LIMITS = {
+  nameLength: 40,
+  groupNameLength: 80,
+  descriptionLength: 300,
+  proposalTitleLength: 80,
+  rangeDays: 366,
+  proposalDays: 14,
+  participantsPerGroup: 150,
+  newNamesPer10Minutes: 40,
+  proposalsPerGroup: 100,
+  proposalsPerParticipant: 15,
+  groupsPerDay: 10,
+  activeGroupsPerUser: 50,
+  dayChangesPerRequest: 400,
+  retentionDays: 90,
+} as const;

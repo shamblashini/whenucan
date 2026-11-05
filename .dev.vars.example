@@ -1,0 +1,13 @@
+# Local development only. `pnpm setup:local` copies this to .dev.vars and fills in SESSION_SECRET.
+SESSION_SECRET=replace-me
+
+# Adds a "Sign in as a test organiser" button. Only works on localhost, and never set this in production.
+DEV_LOGIN=1
+
+# Cloudflare's published test keys: an invisible widget that always passes.
+TURNSTILE_SITE_KEY=1x00000000000000000000BB
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+
+# Optional: paste your Google OAuth client here to test real sign-in on http://localhost:5188
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=

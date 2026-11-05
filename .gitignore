@@ -1,0 +1,9 @@
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+dist
+node_modules
+*.tsbuildinfo
+.wrangler
+test-results
+playwright-report

@@ -1,0 +1,11 @@
+onlyBuiltDependencies:
+  - esbuild
+  - workerd
+allowBuilds:
+  esbuild: true
+  workerd: true
+minimumReleaseAgeExclude:
+  - miniflare@5.20261104.0-beta
+  - vite@8.3.6
+  - wrangler@4.158.0
+  - '@cloudflare/vitest-plugin@1.6.0'

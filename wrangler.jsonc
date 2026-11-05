@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "whenucan",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/auth/*"]
+  },
+  // Cloudflare creates the DNS record and certificate on deploy.
+  "routes": [{ "pattern": "whenucan.app", "custom_domain": true }],
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "whenucan",
+      "database_id": "6b0b8fdc-21e6-4e72-b690-7ee4d6797ee9",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Daily sweep: delete groups 90 days after their last date, expired sessions, unused accounts.
+  "triggers": { "crons": ["23 3 * * *"] },
+  // Rate limits per Cloudflare location. `period` can only be 10 or 60 seconds.
+  "ratelimits": [
+    { "name": "RL_READ", "namespace_id": "4101", "simple": { "limit": 300, "period": 60 } },
+    { "name": "RL_WRITE", "namespace_id": "4102", "simple": { "limit": 120, "period": 60 } },
+    { "name": "RL_JOIN", "namespace_id": "4103", "simple": { "limit": 15, "period": 60 } },
+    { "name": "RL_AUTH", "namespace_id": "4104", "simple": { "limit": 20, "period": 60 } }
+  ],
+  // Production values. Local development overrides these in .dev.vars.
+  "vars": {
+    "GOOGLE_CLIENT_ID": "281336202616-hc9o951sfqisjpkgs0fed4293pq94n5k.apps.googleusercontent.com",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAF1fOo-Gx-c4dF2H",
+    // Shown on the privacy page as the address for data requests.
+    "CONTACT_EMAIL": "privacy@whenucan.app",
+    "REPO_URL": "https://github.com/shamblashini/whenucan"
+  }
+  // Secrets (wrangler secret put …): SESSION_SECRET, GOOGLE_CLIENT_SECRET, TURNSTILE_SECRET_KEY
+}
