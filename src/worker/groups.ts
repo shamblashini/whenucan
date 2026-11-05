@@ -21,7 +21,7 @@ interface GroupRow {
   version: number;
 }
 
-const day = z.string().refine(isDay, "Use a valid date.");
+const day = z.string().refine(isDay, "error.invalidDate");
 const vote = z.enum(["yes", "ok", "no"]);
 
 const validTimezone = (value: string) => {
@@ -34,21 +34,21 @@ const validTimezone = (value: string) => {
 };
 
 const groupFields = z.object({
-  name: z.string().transform(cleanText).pipe(z.string().min(1, "Give the group a name.").max(LIMITS.groupNameLength)),
+  name: z.string().transform(cleanText).pipe(z.string().min(1, "error.groupName").max(LIMITS.groupNameLength)),
   description: z.string().transform(cleanText).pipe(z.string().max(LIMITS.descriptionLength)).default(""),
   startDate: day,
   endDate: day,
-  timezone: z.string().max(64).refine(validTimezone, "Choose a valid time zone."),
+  timezone: z.string().max(64).refine(validTimezone, "error.invalidTimezone"),
 });
 
 const checkRange = (value: { startDate: string; endDate: string }) => {
   const length = daysBetween(value.startDate, value.endDate);
-  if (length < 0) throw new ApiError(400, "invalid", "The last day must not be before the first day.");
-  if (length >= LIMITS.rangeDays) throw new ApiError(400, "invalid", "Pick a date range of one year or less.");
+  if (length < 0) throw new ApiError(400, "invalid", "error.lastDayBeforeFirst");
+  if (length >= LIMITS.rangeDays) throw new ApiError(400, "invalid", "error.rangeTooLong");
 };
 
 const joinBody = z.object({
-  name: z.string().max(400).transform(cleanName).pipe(z.string().min(1, "Enter your name.")),
+  name: z.string().max(400).transform(cleanName).pipe(z.string().min(1, "error.nameRequired")),
   turnstileToken: z.string().max(4096).optional(),
 });
 const daysBody = z.object({
@@ -59,14 +59,14 @@ const daysBody = z.object({
 });
 const proposalBody = z.object({
   title: z.string().transform(cleanText).pipe(z.string().max(LIMITS.proposalTitleLength)).default(""),
-  startsAt: z.string().refine(isLocalDateTime, "Enter a valid start time."),
-  endsAt: z.string().refine(isLocalDateTime, "Enter a valid end time."),
+  startsAt: z.string().refine(isLocalDateTime, "error.invalidStart"),
+  endsAt: z.string().refine(isLocalDateTime, "error.invalidEnd"),
 });
 const voteBody = z.object({ value: vote.nullable() });
 
 async function findGroup(c: Context<AppContext>, slug: string): Promise<GroupRow> {
   const group = await c.env.DB.prepare("SELECT * FROM groups WHERE slug = ?").bind(slug).first<GroupRow>();
-  if (!group) throw new ApiError(404, "group_not_found", "This link does not work any more.");
+  if (!group) throw new ApiError(404, "group_not_found", "error.linkDead");
   return group;
 }
 
@@ -74,7 +74,7 @@ async function findOwnedGroup(c: Context<AppContext>, slug: string): Promise<Gro
   const user = await requireUser(c);
   await rateLimit(c.env.RL_WRITE, `user:${user.id}`);
   const group = await findGroup(c, slug);
-  if (group.owner_id !== user.id) throw new ApiError(403, "not_owner", "Only the organiser can do that.");
+  if (group.owner_id !== user.id) throw new ApiError(403, "not_owner", "error.notOwner");
   return group;
 }
 
@@ -89,18 +89,18 @@ async function participantToken(c: Context<AppContext>, slug: string, participan
     .sign(secretKey(c.env));
 }
 
-const REMOVED = "You were removed from this group. Enter your name to rejoin.";
+const REMOVED = "error.removed";
 
 async function participantId(c: Context<AppContext>, slug: string): Promise<string> {
   const token = c.req.header("authorization")?.replace(/^Bearer /, "");
-  if (!token) throw new ApiError(401, "no_token", "Enter your name to continue.");
+  if (!token) throw new ApiError(401, "no_token", "error.enterName");
   try {
     const { payload } = await jwtVerify<{ s: string; p: string }>(token, secretKey(c.env), { algorithms: ["HS256"] });
     if (payload.s === slug) return payload.p;
   } catch {
     // Reported below, with the same answer as a token for another group.
   }
-  throw new ApiError(401, "no_token", "Enter your name to continue.");
+  throw new ApiError(401, "no_token", "error.enterName");
 }
 
 /** Authenticates a writer: the token must be valid and the person must still be in the group. */
@@ -143,10 +143,10 @@ groupRoutes.post("/api/groups", async (c) => {
     .bind(user.id)
     .first<{ active: number; today: number }>();
   if (counts!.today >= LIMITS.groupsPerDay) {
-    throw new ApiError(429, "too_many_groups", `You can create ${LIMITS.groupsPerDay} groups a day. Try again tomorrow.`);
+    throw new ApiError(429, "too_many_groups", "error.groupsPerDay", { count: LIMITS.groupsPerDay });
   }
   if (counts!.active >= LIMITS.activeGroupsPerUser) {
-    throw new ApiError(429, "too_many_groups", `You have ${LIMITS.activeGroupsPerUser} groups. Delete an old one first.`);
+    throw new ApiError(429, "too_many_groups", "error.groupsTotal", { count: LIMITS.activeGroupsPerUser });
   }
 
   const slug = newSlug();
@@ -171,7 +171,6 @@ function publicGroup(group: GroupRow) {
 }
 
 groupRoutes.get("/api/g/:slug", async (c) => {
-  await rateLimit(c.env.RL_READ, clientIp(c.req.raw));
   const group = await findGroup(c, c.req.param("slug"));
   const [{ results }, user] = await Promise.all([
     c.env.DB.prepare("SELECT name FROM participants WHERE group_id = ? ORDER BY name COLLATE NOCASE LIMIT 60")
@@ -252,10 +251,10 @@ groupRoutes.post("/api/g/:slug/join", async (c) => {
       .bind(group.id)
       .first<{ total: number; recent: number }>();
     if (counts!.total >= LIMITS.participantsPerGroup) {
-      throw new ApiError(409, "group_full", `This group is full: it has ${LIMITS.participantsPerGroup} people.`);
+      throw new ApiError(409, "group_full", "error.groupFull", { count: LIMITS.participantsPerGroup });
     }
     if (counts!.recent >= LIMITS.newNamesPer10Minutes) {
-      throw new ApiError(429, "rate_limited", "Many people are joining right now. Try again in a few minutes.");
+      throw new ApiError(429, "rate_limited", "error.joiningBusy");
     }
     await db.batch([
       db
@@ -277,7 +276,6 @@ groupRoutes.post("/api/g/:slug/join", async (c) => {
 groupRoutes.get("/api/g/:slug/state", async (c) => {
   const slug = c.req.param("slug");
   const me = await participantId(c, slug);
-  await rateLimit(c.env.RL_READ, clientIp(c.req.raw));
   const group = await findGroup(c, slug);
 
   const etag = `"${group.version}"`;
@@ -339,7 +337,7 @@ groupRoutes.put("/api/g/:slug/days", async (c) => {
   const db = c.env.DB;
   const statements = changes.map(({ day: changed, value }) => {
     if (changed < group.start_date || changed > group.end_date) {
-      throw new ApiError(400, "invalid", "That day is outside this group's dates.");
+      throw new ApiError(400, "invalid", "error.dayOutside");
     }
     return value
       ? db
@@ -358,14 +356,14 @@ groupRoutes.post("/api/g/:slug/proposals", async (c) => {
   const { group, id } = await requireParticipant(c, c.req.param("slug"));
   const { title, startsAt, endsAt } = proposalBody.parse(await c.req.json());
 
-  if (endsAt <= startsAt) throw new ApiError(400, "invalid", "The end time must be after the start time.");
+  if (endsAt <= startsAt) throw new ApiError(400, "invalid", "error.endAfterStart");
   if (daysBetween(startsAt.slice(0, 10), endsAt.slice(0, 10)) > LIMITS.proposalDays) {
-    throw new ApiError(400, "invalid", `A proposal can last ${LIMITS.proposalDays} days at most.`);
+    throw new ApiError(400, "invalid", "error.proposalTooLong", { count: LIMITS.proposalDays });
   }
   // One extra day at the end, so a last-night plan can run past midnight.
   if (startsAt.slice(0, 10) < group.start_date || startsAt.slice(0, 10) > group.end_date ||
       endsAt.slice(0, 10) > addDays(group.end_date, 1)) {
-    throw new ApiError(400, "invalid", "Pick a time inside this group's dates.");
+    throw new ApiError(400, "invalid", "error.timeOutside");
   }
 
   const db = c.env.DB;
@@ -374,10 +372,10 @@ groupRoutes.post("/api/g/:slug/proposals", async (c) => {
     .bind(id, group.id)
     .first<{ total: number; mine: number }>();
   if (counts!.total >= LIMITS.proposalsPerGroup) {
-    throw new ApiError(409, "too_many_proposals", "This group has reached its limit of proposals.");
+    throw new ApiError(409, "too_many_proposals", "error.proposalsGroupLimit");
   }
   if (counts!.mine >= LIMITS.proposalsPerParticipant) {
-    throw new ApiError(409, "too_many_proposals", `You can add ${LIMITS.proposalsPerParticipant} proposals to a group.`);
+    throw new ApiError(409, "too_many_proposals", "error.proposalsPersonLimit", { count: LIMITS.proposalsPerParticipant });
   }
 
   const proposalId = crypto.randomUUID();
@@ -397,7 +395,7 @@ groupRoutes.post("/api/g/:slug/proposals", async (c) => {
       .bind(id, proposalId),
     bumpVersion(c, group.id),
   ]);
-  if (!insert.meta.changes) throw new ApiError(409, "duplicate", "That proposal is already on the list.");
+  if (!insert.meta.changes) throw new ApiError(409, "duplicate", "error.proposalDuplicate");
   return c.json({ id: proposalId }, 201);
 });
 
@@ -407,7 +405,7 @@ groupRoutes.put("/api/g/:slug/proposals/:id/vote", async (c) => {
   const proposal = await c.env.DB.prepare("SELECT id FROM proposals WHERE id = ? AND group_id = ?")
     .bind(c.req.param("id"), group.id)
     .first<{ id: string }>();
-  if (!proposal) throw new ApiError(404, "proposal_not_found", "That proposal was removed.");
+  if (!proposal) throw new ApiError(404, "proposal_not_found", "error.proposalRemoved");
   const db = c.env.DB;
   await db.batch([
     value
@@ -430,14 +428,14 @@ groupRoutes.delete("/api/g/:slug/proposals/:id", async (c) => {
   const proposal = await c.env.DB.prepare("SELECT id, created_by FROM proposals WHERE id = ? AND group_id = ?")
     .bind(c.req.param("id"), group.id)
     .first<{ id: string; created_by: string }>();
-  if (!proposal) throw new ApiError(404, "proposal_not_found", "That proposal was already removed.");
+  if (!proposal) throw new ApiError(404, "proposal_not_found", "error.proposalAlreadyRemoved");
 
   const user = await currentUser(c);
   if (user?.id === group.owner_id) {
     await rateLimit(c.env.RL_WRITE, `user:${user.id}`);
   } else {
     const { id } = await requireParticipant(c, slug);
-    if (proposal.created_by !== id) throw new ApiError(403, "not_creator", "Only the person who proposed it can remove it.");
+    if (proposal.created_by !== id) throw new ApiError(403, "not_creator", "error.notCreator");
   }
   await c.env.DB.batch([
     c.env.DB.prepare("DELETE FROM proposals WHERE id = ?").bind(proposal.id),

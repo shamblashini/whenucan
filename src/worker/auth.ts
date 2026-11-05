@@ -44,7 +44,7 @@ export async function currentUser(c: Context<AppContext>): Promise<Me | null> {
 
 export async function requireUser(c: Context<AppContext>): Promise<Me> {
   const user = await currentUser(c);
-  if (!user) throw new ApiError(401, "signed_out", "Sign in to continue.");
+  if (!user) throw new ApiError(401, "signed_out", "error.signIn");
   return user;
 }
 
@@ -79,7 +79,8 @@ function endSessionCookie(c: Context<AppContext>): void {
 
 /** Only same-site paths, so a crafted link cannot send people elsewhere after sign-in. */
 function safeNext(next: string | undefined): string {
-  return next && /^\/(?![/\\])/.test(next) ? next : "/dashboard";
+  // Browsers drop tabs and newlines from redirects, which could turn "/\t/site" into "//site".
+  return next && /^\/(?![/\\])[^\p{Cc}]*$/u.test(next) ? next : "/dashboard";
 }
 
 const startBody = z.object({ turnstileToken: z.string().max(4096).optional(), next: z.string().max(200).optional() });
@@ -90,7 +91,7 @@ authRoutes.post("/api/auth/google/start", async (c) => {
   await rateLimit(c.env.RL_AUTH, clientIp(c.req.raw));
   const { turnstileToken, next } = startBody.parse(await c.req.json());
   if (!c.env.GOOGLE_CLIENT_ID || !c.env.GOOGLE_CLIENT_SECRET) {
-    throw new ApiError(503, "google_not_configured", "Google sign-in is not set up yet.");
+    throw new ApiError(503, "google_not_configured", "error.googleNotConfigured");
   }
   await verifyTurnstile(c.env, c.req.raw, turnstileToken, "signin");
 
@@ -149,6 +150,7 @@ async function finishGoogleSignIn(c: Context<AppContext>): Promise<string> {
   const { payload: flow } = await jwtVerify<{ state: string; nonce: string; verifier: string; next: string }>(
     flowCookie,
     secretKey(c.env),
+    { algorithms: ["HS256"] },
   );
   if (c.req.query("state") !== flow.state) throw new Error("state mismatch");
 
@@ -181,7 +183,7 @@ async function finishGoogleSignIn(c: Context<AppContext>): Promise<string> {
 }
 
 authRoutes.post("/api/auth/dev", async (c) => {
-  if (!devLoginEnabled(c.env, c.req.url)) throw new ApiError(404, "not_found", "Not found.");
+  if (!devLoginEnabled(c.env, c.req.url)) throw new ApiError(404, "not_found", "error.notFound");
   await startSession(c, "dev:organiser", "organiser@example.test", "Test Organiser");
   return c.json({ ok: true });
 });
@@ -196,7 +198,6 @@ authRoutes.post("/api/auth/logout", async (c) => {
 });
 
 authRoutes.get("/api/me", async (c) => {
-  await rateLimit(c.env.RL_READ, clientIp(c.req.raw));
   const user = await currentUser(c);
   if (!user) return c.json({ user: null });
   const row = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM groups WHERE owner_id = ?").bind(user.id).first<{ n: number }>();

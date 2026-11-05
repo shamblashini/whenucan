@@ -51,6 +51,9 @@ Most people will open the link from a group chat. Marking days works with a thum
 ## What's in it
 
 - **No accounts for guests.** Only the organiser signs in. The same name on another device is the same person.
+- **25 European languages plus English.** The app follows the browser's language. [Add yours](#add-a-language).
+- **Your clock format.** 24-hour time in Europe and wherever the language uses it. Dates follow the language too.
+- **Google Calendar.** Add any proposed time to your calendar with one button, in the group's time zone.
 - **Live updates.** Other people's answers appear within seconds, with no reload.
 - **Abuse protection.** Invisible Cloudflare Turnstile, rate limits and caps on people, proposals and groups.
 - **Organiser controls.** Remove people, delete proposals, replace the link or delete the group.
@@ -173,9 +176,17 @@ Cloudflare creates the DNS record and certificate for your domain on the first d
 - Per-group and per-person caps: `src/shared/limits.ts`
 - Rate limits and the cleanup schedule: `wrangler.jsonc`
 
+## Add a language
+
+Copy `src/client/i18n/locales/de.ts` to `<language code>.ts` in the same folder and translate the values. The app finds the new file by itself. `pnpm test` checks that every key, placeholder and plural form is there. Corrections to existing translations are welcome too: they were machine-translated and no native speaker has reviewed them yet.
+
 ## Privacy requests
 
 To see, correct or delete your data on whenucan.app, write to [privacy@whenucan.app](mailto:privacy@whenucan.app). Please don't use GitHub issues for this, because they are public. The [privacy page](https://whenucan.app/privacy) has the details.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) to report a problem privately.
 
 ## License
 

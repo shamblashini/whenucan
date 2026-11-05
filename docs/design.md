@@ -22,10 +22,12 @@
 | Times | Wall-clock strings plus a group time zone label | Everyone reads the same "Fri 19:00", matching the plain calendar days. No time zone conversion and no DST bugs. People in other zones see a label saying which zone applies. |
 | Organiser's identity | Same name screen as everyone, prefilled | One code path and one UI. The organiser's extra controls come from their session cookie. |
 | Live updates | Polling (4s, 12s when idle, paused when hidden) | The `version` column makes an unchanged poll one row read and a 304. WebSockets and Durable Objects are not needed at this scale. |
+| Languages | Own small `t()` with `Intl.PluralRules`, one lazy-loaded file per language | About 40 lines cover everything needed, and visitors download only their language. The API sends error keys, and the browser translates them. |
+| Clock format | 24-hour unless the language uses 12-hour and the time zone is outside Europe | Browsers only reveal a format through the language, and many people in Europe use an en-US browser. The time picker is two dropdowns, because a native time input ignores this choice. |
 | Database access | Plain D1 SQL | Six small tables do not justify an ORM. |
 
 Left out on purpose, to keep it simple: calendar export, locking a final date,
-closing a group, notifications, email, translations.
+closing a group, notifications, email.
 
 ## Architecture
 
@@ -55,15 +57,15 @@ Layers, from the outside in:
 
 1. **Turnstile**, managed mode with `interaction-only` appearance, on organiser sign-in and when a participant joins.
    Invisible for almost everyone. It only runs at the name step, so voting stays instant afterwards.
-2. **Rate limits** with Workers rate-limit bindings: reads 300/min per IP, writes 120/min per person, joins 15/min per IP,
+2. **Rate limits** with Workers rate-limit bindings: all API requests 600/min per IP, writes 120/min per person, joins 15/min per IP,
    sign-in and group creation 20/min. These count per Cloudflare location, so treat them as approximate.
 3. **Hard caps** enforced in D1, in `src/shared/limits.ts`:
    150 people and 100 proposals per group, 15 proposals per person, 40 new names per group per 10 minutes,
    10 new groups a day and 50 groups in total per organiser, a one-year date range, and length limits on all text.
 4. **Organiser tools**: remove a person (with their answers and proposals), delete a proposal, replace the link
    (the old link and its tokens stop working at once and answers stay), delete the group.
-5. **Unguessable links**: about 70 bits, not indexed (`noindex`, `robots.txt`), and kept out of `Referer` for other sites.
-6. **Browser hardening**: strict CSP, no framing, Origin check on writes, and control and bidi characters stripped from all text.
+5. **Unguessable links**: about 70 bits, not indexed (an `X-Robots-Tag: noindex` header, which `robots.txt` deliberately leaves crawlers able to read), and kept out of `Referer` for other sites.
+6. **Browser hardening**: strict CSP, no framing, HSTS, Origin check on writes, a 64 KB limit on request bodies, and control and bidi characters stripped from all text.
 
 ## Tests
 

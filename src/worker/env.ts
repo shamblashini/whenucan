@@ -1,3 +1,4 @@
+import { errorText, type ErrorKey, type ErrorVars } from "@shared/errors";
 export interface Env {
   DB: D1Database;
   ASSETS: Fetcher;
@@ -22,9 +23,10 @@ export class ApiError extends Error {
   constructor(
     readonly status: 400 | 401 | 403 | 404 | 409 | 413 | 429 | 500 | 503,
     readonly code: string,
-    message: string,
+    readonly key: ErrorKey,
+    readonly vars?: ErrorVars,
   ) {
-    super(message);
+    super(errorText(key, vars));
   }
 }
 
@@ -39,11 +41,11 @@ export function clientIp(request: Request): string {
 
 export async function rateLimit(limiter: RateLimit, key: string): Promise<void> {
   const { success } = await limiter.limit({ key });
-  if (!success) throw new ApiError(429, "rate_limited", "Too many requests. Wait a minute and try again.");
+  if (!success) throw new ApiError(429, "rate_limited", "error.rateLimited");
 }
 
 export function secretKey(env: Env): Uint8Array {
-  if (!env.SESSION_SECRET) throw new ApiError(500, "not_configured", "The server is missing SESSION_SECRET.");
+  if (!env.SESSION_SECRET) throw new ApiError(500, "not_configured", "error.notConfigured");
   return new TextEncoder().encode(env.SESSION_SECRET);
 }
 

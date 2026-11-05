@@ -1,4 +1,5 @@
+# Group links are not blocked here on purpose. Crawlers must be able to fetch them to see their
+# X-Robots-Tag: noindex header. A blocked URL can still be listed if someone posts it publicly.
 User-agent: *
-Disallow: /g/
 Disallow: /api/
 Disallow: /auth/

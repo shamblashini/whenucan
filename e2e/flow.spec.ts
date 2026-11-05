@@ -156,6 +156,62 @@ test("best days show who can make it", async ({ page, browser }) => {
   await expect(anna.locator('button[data-day][data-selected="true"]')).toBeVisible();
 });
 
+test("a proposal can go to Google Calendar, with the clock format of the visitor", async ({ page, browser }) => {
+  const url = await createGroup(page, `Dinner ${Date.now()}`);
+
+  const context = await browser.newContext({ locale: "en-US", timezoneId: "Europe/Warsaw" });
+  const warsaw = await context.newPage();
+  await warsaw.goto(url);
+  await warsaw.getByLabel("What's your name?").fill("Wanda");
+  await warsaw.getByRole("button", { name: "Continue" }).click();
+  await warsaw.getByRole("button", { name: "Propose a time" }).click();
+  await warsaw.getByLabel("What's the plan? (optional)").fill("Pizza");
+  await warsaw.getByLabel("From").selectOption("18");
+  await warsaw.getByLabel("Minutes").first().selectOption("30");
+  await warsaw.getByLabel("To", { exact: true }).selectOption("21");
+  await warsaw.getByRole("button", { name: "Add proposal" }).click();
+  const row = warsaw.locator("li", { hasText: "Pizza" });
+  await expect(row).toContainText("18:30");
+  await expect(row).toContainText("21:00");
+
+  const link = row.getByRole("link", { name: "Add to Google Calendar" });
+  const target = new URL((await link.getAttribute("href"))!);
+  expect(target.searchParams.get("dates")).toMatch(/^\d{8}T183000\/\d{8}T210000$/);
+  expect(target.searchParams.get("text")).toMatch(/^Pizza \(Dinner /);
+  expect(target.searchParams.get("details")).toContain(url);
+
+  const america = await (await browser.newContext({ locale: "en-US", timezoneId: "America/New_York" })).newPage();
+  await america.goto(url);
+  await america.getByLabel("What's your name?").fill("Amy");
+  await america.getByRole("button", { name: "Continue" }).click();
+  await expect(america.locator("li", { hasText: "Pizza" })).toContainText("6:30");
+  await expect(america.locator("li", { hasText: "Pizza" })).toContainText("PM");
+});
+
+test("the page follows the browser's language, and the footer is small away from the landing page", async ({ browser }) => {
+  const german = await (await browser.newContext({ locale: "de-DE" })).newPage();
+  await german.goto("/");
+  await expect(german.locator("html")).toHaveAttribute("lang", "de-DE");
+  await expect(german.getByText("Send your group one link")).toHaveCount(0);
+
+  // There is no Russian translation, so the next choice is English.
+  const russian = await (await browser.newContext({ locale: "ru-RU" })).newPage();
+  await russian.goto("/");
+  await expect(russian.getByText("Send your group one link")).toBeVisible();
+
+  const page = await (await browser.newContext({ locale: "en-US", viewport: { width: 390, height: 780 } })).newPage();
+  await page.goto("/");
+  await expect(page.getByText("Free and open source")).toBeVisible();
+  await page.goto("/privacy");
+  await expect(page.getByText("Free and open source")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Source code" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Report a problem" })).toBeVisible();
+  const footer = page.locator("footer").getByRole("link", { name: "Privacy", exact: true });
+  await expect(footer).toBeVisible();
+  const logo = (await page.locator("footer svg").boundingBox())!;
+  expect(logo.height).toBeLessThanOrEqual(16);
+});
+
 test("the organiser can remove people and replace the link", async ({ page, browser }) => {
   const url = await createGroup(page, `Trip ${Date.now()}`);
   const mallory = await guest(browser, url, "Mallory");

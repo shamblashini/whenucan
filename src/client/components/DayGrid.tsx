@@ -1,7 +1,8 @@
 import { useMemo, useRef, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { addDays, addMonths, eachDay, firstOfMonth, lastOfMonth, weekday } from "@shared/dates";
 import type { Vote } from "@shared/types";
-import { VOTE_LABEL, firstWeekday, formatDayLong, formatMonth, weekdayLabels } from "../format";
+import { firstWeekday, formatDayLong, formatMonth, voteLabel, weekdayLabels } from "../format";
+import { t } from "../i18n";
 import { Glyph } from "./ui";
 
 export interface Tally {
@@ -197,11 +198,13 @@ function DayCell({
   const number = Number(day.slice(8));
   const counts = tally ?? { yes: 0, ok: 0, no: 0 };
   const answered = counts.yes + counts.ok + counts.no;
-  const summary = `${counts.yes} yes, ${counts.ok} OK, ${counts.no} no`;
+  const summary = t("day.counts", { ...counts });
   const label =
-    mode === "mine"
-      ? `${formatDayLong(day)}: ${mine ? `you said ${VOTE_LABEL[mine]}` : "no answer"}. Group: ${summary}`
-      : `${formatDayLong(day)}: ${summary}, of ${people} ${people === 1 ? "person" : "people"}`;
+    mode === "everyone"
+      ? t("day.everyone", { day: formatDayLong(day), summary, count: people })
+      : mine
+        ? t("day.you", { day: formatDayLong(day), vote: voteLabel(mine), summary })
+        : t("day.youNone", { day: formatDayLong(day), summary });
   return (
     <button
       type="button"
@@ -249,7 +252,7 @@ function DayCell({
 
 export function MarkerTray({ brush, onChange, tiny }: { brush: Vote; onChange: (value: Vote) => void; tiny?: boolean }) {
   return (
-    <div role="radiogroup" aria-label="Marker" className={`flex gap-2 ${tiny ? "" : "w-full"}`}>
+    <div role="radiogroup" aria-label={t("group.marker")} className={`flex gap-2 ${tiny ? "" : "w-full"}`}>
       {(["yes", "ok", "no"] as Vote[]).map((value) => (
         <button
           key={value}
@@ -263,7 +266,7 @@ export function MarkerTray({ brush, onChange, tiny }: { brush: Vote; onChange: (
           onClick={() => onChange(value)}
         >
           <Glyph value={value} className="h-4 w-4" />
-          {VOTE_LABEL[value]}
+          {voteLabel(value)}
         </button>
       ))}
     </div>

@@ -105,6 +105,14 @@ describe("Google sign-in", () => {
     expect(response.headers.get("location")).toBe("/dashboard");
   });
 
+  it("does not trust a redirect with control characters, which browsers strip", async () => {
+    const setQuery = fakeGoogle(() => ({}));
+    const { query, cookie } = await start("/\t/evil.example/");
+    setQuery(query);
+    const response = await callback(query, cookie);
+    expect(response.headers.get("location")).toBe("/dashboard");
+  });
+
   for (const [name, claims] of [
     ["a wrong nonce", { nonce: "other" }],
     ["a token for another app", { aud: "another-client" }],

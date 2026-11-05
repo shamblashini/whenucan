@@ -7,11 +7,12 @@ import { ApiFailure, api, errorMessage, rawRequest } from "../api";
 import { useApp } from "../App";
 import { DateRangePicker, type Range } from "../components/DateRangePicker";
 import { DayGrid, MarkerTray, type Tally } from "../components/DayGrid";
-import { ConfirmButton, Glyph, ShareLink, Sheet, SiteFooter, Spinner, Wordmark, useTitle, useToast } from "../components/ui";
+import { ConfirmButton, Glyph, ShareLink, Sheet, SiteFooter, Spinner, Wordmark, shareUrl, useTitle, useToast } from "../components/ui";
 import {
-  VOTES, VOTE_LABEL, formatDayLong, formatDayNumber, formatMonthShort, formatProposalTime, formatRangeDays, formatWeekday, localToday,
-  timezoneLabel, viewerTimezone,
+  VOTES, formatDayLong, formatHour, formatDayNumber, formatMonthShort, formatProposalTime, formatRangeDays, formatWeekday, googleCalendarUrl, localToday,
+  timezoneLabel, viewerTimezone, voteLabel,
 } from "../format";
+import { t } from "../i18n";
 import { clearIdentity, loadIdentity, saveIdentity, type Identity } from "../storage";
 import { useTurnstile } from "../turnstile";
 import { useGroupState } from "../useGroupState";
@@ -62,7 +63,7 @@ function Group({ slug }: { slug: string }) {
       <main className="mx-auto max-w-lg px-4 py-20">
         <p role="alert" className="mb-4 text-lg font-semibold">{loadError}</p>
         <button type="button" className="btn btn-primary" onClick={load}>
-          Try again
+          {t("common.tryAgain")}
         </button>
       </main>
     );
@@ -94,13 +95,13 @@ function Group({ slug }: { slug: string }) {
 }
 
 function DeadLink() {
-  useTitle("Link not working | whenucan?");
+  useTitle(`${t("dead.pageTitle")} | whenucan?`);
   return (
     <main className="mx-auto max-w-lg px-4 py-10">
       <Wordmark />
-      <h1 className="mt-16 mb-3 text-4xl font-bold tracking-tight">This link does not work any more</h1>
+      <h1 className="mt-16 mb-3 text-4xl font-bold tracking-tight">{t("dead.heading")}</h1>
       <p className="text-lg">
-        The organiser may have replaced the link or deleted the group, or the group's dates ended a while ago. Ask them for a new link.
+        {t("dead.body")}
       </p>
     </main>
   );
@@ -121,7 +122,7 @@ function JoinScreen({ meta, notice, onJoined }: { meta: GroupMeta; notice: strin
 
   const join = async (chosen: string) => {
     if (!chosen.trim()) {
-      setError("Enter your name.");
+      setError(t("join.enterName"));
       return;
     }
     setBusy(true);
@@ -132,7 +133,7 @@ function JoinScreen({ meta, notice, onJoined }: { meta: GroupMeta; notice: strin
         method: "POST",
         body: { name: chosen, turnstileToken },
       });
-      if (result.returning) toast(`Welcome back, ${result.participant.name}`);
+      if (result.returning) toast(t("join.welcomeBack", { name: result.participant.name }));
       onJoined({ token: result.token, id: result.participant.id, name: result.participant.name });
     } catch (failure) {
       setError(errorMessage(failure));
@@ -155,7 +156,7 @@ function JoinScreen({ meta, notice, onJoined }: { meta: GroupMeta; notice: strin
         {meta.description && <p className="mb-2 text-lg">{meta.description}</p>}
         <form onSubmit={submit} className="mt-8">
           <label className="label text-lg" htmlFor="your-name">
-            What's your name?
+            {t("join.nameLabel")}
           </label>
           <div className="flex gap-2">
             <input
@@ -170,7 +171,7 @@ function JoinScreen({ meta, notice, onJoined }: { meta: GroupMeta; notice: strin
               onChange={(e) => setName(e.target.value)}
             />
             <button type="submit" className="btn btn-primary min-h-12 shrink-0 text-lg" disabled={busy}>
-              {busy ? "Opening…" : "Continue"}
+              {busy ? t("join.opening") : t("join.continue")}
             </button>
           </div>
           <div ref={turnstile.slot} className="mt-2" />
@@ -182,7 +183,7 @@ function JoinScreen({ meta, notice, onJoined }: { meta: GroupMeta; notice: strin
         </form>
         {meta.names.length > 0 && (
           <div className="mt-6">
-            <p className="mb-2 text-soft">Been here before? Tap your name.</p>
+            <p className="mb-2 text-soft">{t("join.beenHere")}</p>
             <div className="flex flex-wrap gap-1.5">
               {meta.names.map((existing) => (
                 <button key={existing} type="button" className="chip" disabled={busy} onClick={() => join(existing)}>
@@ -193,7 +194,7 @@ function JoinScreen({ meta, notice, onJoined }: { meta: GroupMeta; notice: strin
           </div>
         )}
         <p className="mt-8 text-soft">
-          No account or password. Anyone with this link can answer under any name, so share it only with your group.
+          {t("join.warning")}
         </p>
       </main>
       <SiteFooter />
@@ -272,15 +273,15 @@ function Planner({
         <div className="flex flex-wrap items-center gap-1">
           <span className="font-semibold">{identity.name}</span>
           <button type="button" className="btn btn-quiet" onClick={() => onLeave()}>
-            Not you?
+            {t("group.notYou")}
           </button>
           {meta.isOwner && (
             <button type="button" className="btn btn-quiet" onClick={() => setOrganising(true)}>
-              Organise
+              {t("group.organise")}
             </button>
           )}
-          <button type="button" className="btn btn-plain ml-1" onClick={() => setSharing(true)}>
-            Share link
+          <button type="button" className="btn btn-plain" onClick={() => setSharing(true)}>
+            {t("group.shareLink")}
           </button>
         </div>
       </header>
@@ -289,7 +290,7 @@ function Planner({
         <div className="mb-6">
           <h1 className="wordmark text-[clamp(2.25rem,7vw,4rem)] leading-none break-words">{group.name}</h1>
           <p className="mt-2 text-lg font-semibold">
-            {formatRangeDays(group.startDate, group.endDate)}, {state.participants.length} {state.participants.length === 1 ? "person" : "people"} so far
+            {t("group.summary", { range: formatRangeDays(group.startDate, group.endDate), count: state.participants.length })}
           </p>
           {group.description && <p className="mt-1 max-w-2xl text-lg">{group.description}</p>}
         </div>
@@ -298,9 +299,9 @@ function Planner({
           <section aria-labelledby="days-heading">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h2 id="days-heading" className="text-2xl font-bold tracking-tight">
-                Days
+                {t("group.days")}
               </h2>
-              <div role="tablist" aria-label="Calendar view" className="flex rounded-lg border-[1.5px] border-ink p-0.5">
+              <div role="tablist" aria-label={t("group.calendarView")} className="flex rounded-lg border-[1.5px] border-ink p-0.5">
                 {(["mine", "everyone"] as const).map((value) => (
                   <button
                     key={value}
@@ -310,13 +311,13 @@ function Planner({
                     className={`min-h-9 rounded-md px-3 font-semibold ${mode === value ? "bg-ink text-paper" : ""}`}
                     onClick={() => setMode(value)}
                   >
-                    {value === "mine" ? "Mine" : "Everyone"}
+                    {value === "mine" ? t("group.mine") : t("group.everyone")}
                   </button>
                 ))}
               </div>
             </div>
             {mode === "mine" && !answeredAny && (
-              <p className="mb-3 font-medium">Pick a marker, then tap or drag across the days. Tap a day again to clear it.</p>
+              <p className="mb-3 font-medium">{t("group.markHint")}</p>
             )}
             {mode === "everyone" && <EveryoneLegend />}
             <DayGrid
@@ -351,18 +352,18 @@ function Planner({
           <section aria-labelledby="proposals-heading">
             <div className="mb-3 flex items-center justify-between gap-3">
               <h2 id="proposals-heading" className="text-2xl font-bold tracking-tight">
-                Proposals
+                {t("proposals.heading")}
               </h2>
               <button type="button" className="btn btn-primary" onClick={() => setProposing(defaultDay)}>
-                Propose a time
+                {t("proposals.propose")}
               </button>
             </div>
             {viewerTimezone() !== group.timezone && state.proposals.length > 0 && (
-              <p className="mb-2 text-soft">All times are in {timezoneLabel(group.timezone)} time.</p>
+              <p className="mb-2 text-soft">{t("proposals.timesIn", { zone: timezoneLabel(group.timezone) })}</p>
             )}
             {state.proposals.length === 0 ? (
               <p className="border-t-[1.5px] border-rule pt-4 text-lg">
-                No proposals yet. Have a time in mind? Propose it and everyone can answer yes, OK or no.
+                {t("proposals.empty")}
               </p>
             ) : (
               <ul className="border-t-[1.5px] border-rule">
@@ -374,6 +375,13 @@ function Planner({
                     participants={state.participants}
                     me={identity.id}
                     canDelete={meta.isOwner || proposal.createdBy === identity.id}
+                    calendarUrl={googleCalendarUrl({
+                      title: proposal.title ? `${proposal.title} (${group.name})` : group.name,
+                      startsAt: proposal.startsAt,
+                      endsAt: proposal.endsAt,
+                      timezone: group.timezone,
+                      details: [group.description, shareUrl(slug)].filter(Boolean).join("\n\n"),
+                    })}
                     onVote={(value) =>
                       change(
                         (current) => ({
@@ -394,7 +402,7 @@ function Planner({
                         (current) => ({ ...current, proposals: current.proposals.filter((p) => p.id !== proposal.id) }),
                         () => rawRequest(`/api/g/${slug}/proposals/${proposal.id}`, { method: "DELETE", token: identity.token }),
                       );
-                      if (ok) toast("Proposal removed");
+                      if (ok) toast(t("proposals.removed"));
                     }}
                   />
                 ))}
@@ -406,8 +414,8 @@ function Planner({
       <SiteFooter />
 
       {sharing && (
-        <Sheet title="Share this group" onClose={() => setSharing(false)}>
-          <p className="mb-3">Anyone with this link can open the calendar and answer.</p>
+        <Sheet title={t("group.shareTitle")} onClose={() => setSharing(false)}>
+          <p className="mb-3">{t("group.shareBody")}</p>
           <ShareLink slug={slug} groupName={group.name} />
         </Sheet>
       )}
@@ -423,7 +431,7 @@ function Planner({
           onClose={() => setProposing(null)}
           onCreated={async () => {
             setProposing(null);
-            toast("Proposal added");
+            toast(t("proposals.added"));
             await refresh();
           }}
           onSignedOut={onLeave}
@@ -445,7 +453,7 @@ function Planner({
 
 function namesText(names: string[]): string {
   if (names.length <= 3) return names.join(", ");
-  return `${names.slice(0, 3).join(", ")} and ${names.length - 3} more`;
+  return t("best.namesMore", { names: names.slice(0, 3).join(", "), count: names.length - 3 });
 }
 
 function BestDays({
@@ -458,7 +466,7 @@ function BestDays({
   const people = state.participants;
   return (
     <div className="mt-6">
-      <h3 className="mb-1 text-lg font-bold">Best days so far</h3>
+      <h3 className="mb-1 text-lg font-bold">{t("best.heading")}</h3>
       <ol className="border-t-[1.5px] border-rule">
         {best.map(({ day, tally }, index) => {
           const votes = state.days[day] ?? {};
@@ -467,9 +475,9 @@ function BestDays({
           const can = tally.yes + tally.ok;
           const everyone = people.length > 1 && can === people.length;
           const details = [
-            [tally.yes && `${tally.yes} yes`, tally.ok && `${tally.ok} OK`].filter(Boolean).join(", "),
-            tally.no > 0 && `Can't: ${namesText(said("no"))}`,
-            waiting.length > 0 && `No answer: ${namesText(waiting)}`,
+            [tally.yes && t("best.yesCount", { count: tally.yes }), tally.ok && t("best.okCount", { count: tally.ok })].filter(Boolean).join(", "),
+            tally.no > 0 && t("best.cant", { names: namesText(said("no")) }),
+            waiting.length > 0 && t("best.waiting", { names: namesText(waiting) }),
           ].filter(Boolean);
           return (
             <li key={day} className="border-b-[1.5px] border-rule">
@@ -488,7 +496,7 @@ function BestDays({
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-bold">
-                    {everyone ? (tally.ok ? "Everyone can make it" : "Everyone said yes") : `${can} of ${people.length} can make it`}
+                    {everyone ? (tally.ok ? t("best.allCan") : t("best.allYes")) : t("best.someCan", { can, total: people.length })}
                   </span>
                   <span className="who" data-dense={people.length > 24 || undefined} aria-hidden="true">
                     {(["yes", "ok", "no"] as const).flatMap((value) =>
@@ -513,10 +521,10 @@ function EveryoneLegend() {
       {VOTES.map((value) => (
         <span key={value} className="inline-flex items-center gap-1.5">
           <span className={`inline-block h-3.5 w-3.5 rounded-sm bg-${value}`} />
-          {VOTE_LABEL[value]}
+          {voteLabel(value)}
         </span>
       ))}
-      <span>Tap a day to see who said what.</span>
+      <span>{t("group.tapDayHint")}</span>
     </p>
   );
 }
@@ -530,19 +538,19 @@ function DayDetail({ day, state, onPropose }: { day: string; state: GroupState; 
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-lg font-bold">{formatDayLong(day)}</h3>
         <button type="button" className="btn btn-plain" onClick={onPropose}>
-          Propose a time on this day
+          {t("day.proposeHere")}
         </button>
       </div>
       <dl className="space-y-1">
         {VOTES.map((value) => (
           <div key={value} className="flex gap-2">
-            <dt className="w-14 shrink-0 font-semibold">{VOTE_LABEL[value]}</dt>
-            <dd>{byVote(value).join(", ") || <span className="text-soft">Nobody</span>}</dd>
+            <dt className="w-14 shrink-0 font-semibold">{voteLabel(value)}</dt>
+            <dd>{byVote(value).join(", ") || <span className="text-soft">{t("day.nobody")}</span>}</dd>
           </div>
         ))}
         {waiting.length > 0 && (
           <div className="flex gap-2 text-soft">
-            <dt className="w-14 shrink-0 font-semibold">No answer</dt>
+            <dt className="w-14 shrink-0 font-semibold">{t("day.noAnswer")}</dt>
             <dd>{waiting.join(", ")}</dd>
           </div>
         )}
@@ -552,17 +560,19 @@ function DayDetail({ day, state, onPropose }: { day: string; state: GroupState; 
 }
 
 function ProposalRow({
-  proposal, names, participants, me, canDelete, onVote, onDelete,
+  proposal, names, participants, me, canDelete, calendarUrl, onVote, onDelete,
 }: {
   proposal: Proposal;
   names: Map<string, string>;
   participants: Participant[];
   me: string;
   canDelete: boolean;
+  calendarUrl: string;
   onVote: (value: Vote | null) => void;
   onDelete: () => Promise<void>;
 }) {
   const mine = proposal.votes[me];
+  const creator = names.get(proposal.createdBy);
   const list = (value: Vote) => participants.filter((p) => proposal.votes[p.id] === value).map((p) => p.name);
   const waiting = participants.filter((p) => !proposal.votes[p.id]).map((p) => p.name);
   return (
@@ -571,9 +581,9 @@ function ProposalRow({
         <div className="min-w-0 flex-[1_1_16rem]">
           <p className="text-xl font-bold leading-snug">{formatProposalTime(proposal.startsAt, proposal.endsAt)}</p>
           {proposal.title && <p className="text-lg break-words">{proposal.title}</p>}
-          <p className="text-soft">Proposed by {names.get(proposal.createdBy) ?? "someone"}</p>
+          <p className="text-soft">{creator ? t("proposal.by", { name: creator }) : t("proposal.byUnknown")}</p>
         </div>
-        <div className="flex flex-[1_1_14rem] gap-1.5 sm:max-w-xs" role="group" aria-label="Your answer">
+        <div className="flex flex-[1_1_14rem] gap-1.5 sm:max-w-xs" role="group" aria-label={t("proposal.yourAnswer")}>
           {VOTES.map((value) => (
             <button
               key={value}
@@ -584,7 +594,7 @@ function ProposalRow({
               onClick={() => onVote(mine === value ? null : value)}
             >
               <Glyph value={value} className="h-4 w-4" />
-              {VOTE_LABEL[value]}
+              {voteLabel(value)}
             </button>
           ))}
         </div>
@@ -596,7 +606,7 @@ function ProposalRow({
             <div key={value} className="flex gap-1.5">
               <dt className="inline-flex items-baseline gap-1 font-semibold">
                 <span className={`inline-block h-2.5 w-2.5 rounded-sm bg-${value}`} />
-                {VOTE_LABEL[value]}
+                {voteLabel(value)}
               </dt>
               <dd>{people.join(", ")}</dd>
             </div>
@@ -604,17 +614,47 @@ function ProposalRow({
         })}
         {waiting.length > 0 && (
           <div className="flex gap-1.5 text-soft">
-            <dt>No answer:</dt>
+            <dt>{t("proposal.noAnswer")}</dt>
             <dd>{waiting.join(", ")}</dd>
           </div>
         )}
       </dl>
-      {canDelete && (
-        <div className="mt-1 -ml-2">
-          <ConfirmButton label="Remove proposal" confirmLabel="Click again to remove" onConfirm={onDelete} className="btn btn-quiet" />
-        </div>
-      )}
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <a href={calendarUrl} target="_blank" rel="noopener noreferrer" className="btn btn-plain min-h-9 px-3 py-1">
+          <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+            <rect x="2" y="3" width="12" height="11" rx="1.5" />
+            <path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3M8 8.5v3.5M6.25 10.25h3.5" />
+          </svg>
+          {t("proposal.addToCalendar")}
+        </a>
+        {canDelete && (
+          <ConfirmButton label={t("proposal.remove")} confirmLabel={t("proposal.removeConfirm")} onConfirm={onDelete} className="btn btn-quiet" />
+        )}
+      </div>
     </li>
+  );
+}
+
+/** Two dropdowns, because a native time input follows the browser's clock format and ignores ours. */
+function TimeSelect({ id, value, onChange }: { id: string; value: string; onChange: (next: string) => void }) {
+  const [hour, minute] = value.split(":");
+  return (
+    <div className="flex gap-1.5">
+      <select id={id} className="field min-w-0 flex-[3] px-2" value={hour} onChange={(e) => onChange(`${e.target.value}:${minute}`)}>
+        {Array.from({ length: 24 }, (_, h) => (
+          <option key={h} value={String(h).padStart(2, "0")}>
+            {formatHour(h)}
+          </option>
+        ))}
+      </select>
+      <select className="field min-w-0 flex-[2] px-2" aria-label={t("form.minutes")} value={minute} onChange={(e) => onChange(`${hour}:${e.target.value}`)}>
+        {Array.from({ length: 12 }, (_, m) => String(m * 5).padStart(2, "0")).map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
 
@@ -665,24 +705,24 @@ function ProposalForm({
 
   const minDay = today > startDate && today <= endDate ? today : startDate;
   return (
-    <Sheet title="Propose a time" onClose={onClose}>
+    <Sheet title={t("form.title")} onClose={onClose}>
       <form onSubmit={submit} className="space-y-4">
         <div>
           <label className="label" htmlFor="proposal-title">
-            What's the plan? (optional)
+            {t("form.plan")}
           </label>
           <input
             id="proposal-title"
             className="field"
             maxLength={LIMITS.proposalTitleLength}
-            placeholder="Dinner at Anna's"
+            placeholder={t("form.planPlaceholder")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
         </div>
         <div>
           <label className="label" htmlFor="proposal-day">
-            {longer ? "Start date" : "Date"}
+            {longer ? t("form.startDate") : t("form.date")}
           </label>
           <input
             id="proposal-day"
@@ -701,7 +741,7 @@ function ProposalForm({
         {longer && (
           <div>
             <label className="label" htmlFor="proposal-end-day">
-              End date
+              {t("form.endDate")}
             </label>
             <input
               id="proposal-end-day"
@@ -718,21 +758,21 @@ function ProposalForm({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label" htmlFor="proposal-from">
-              From
+              {t("form.from")}
             </label>
-            <input id="proposal-from" className="field" type="time" required value={from} onChange={(e) => setFrom(e.target.value)} />
+            <TimeSelect id="proposal-from" value={from} onChange={setFrom} />
           </div>
           <div>
             <label className="label" htmlFor="proposal-to">
-              To
+              {t("form.to")}
             </label>
-            <input id="proposal-to" className="field" type="time" required value={to} onChange={(e) => setTo(e.target.value)} />
+            <TimeSelect id="proposal-to" value={to} onChange={setTo} />
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-soft">
-            {overnight ? "Ends the next day. " : ""}
-            {viewerTimezone() !== timezone ? `In ${timezoneLabel(timezone)} time.` : ""}
+            {overnight ? `${t("form.endsNextDay")} ` : ""}
+            {viewerTimezone() !== timezone ? t("form.inZone", { zone: timezoneLabel(timezone) }) : ""}
           </p>
           <button
             type="button"
@@ -742,7 +782,7 @@ function ProposalForm({
               setLonger(!longer);
             }}
           >
-            {longer ? "Same day" : "Add an end date"}
+            {longer ? t("form.sameDay") : t("form.addEndDate")}
           </button>
         </div>
         {error && (
@@ -751,7 +791,7 @@ function ProposalForm({
           </p>
         )}
         <button type="submit" className="btn btn-primary w-full text-lg" disabled={busy}>
-          {busy ? "Adding…" : "Add proposal"}
+          {busy ? t("form.adding") : t("form.add")}
         </button>
       </form>
     </Sheet>
@@ -784,7 +824,7 @@ function OrganiserSheet({
   const save = async (event: FormEvent) => {
     event.preventDefault();
     if (!range.end) {
-      setError("Tap the last day of your date range.");
+      setError(t("new.tapLastDay"));
       return;
     }
     setBusy(true);
@@ -795,7 +835,7 @@ function OrganiserSheet({
         body: { name, description, startDate: range.start, endDate: range.end, timezone },
       });
       await onChanged();
-      toast("Changes saved");
+      toast(t("org.saved"));
     } catch (failure) {
       setError(errorMessage(failure));
     } finally {
@@ -812,24 +852,24 @@ function OrganiserSheet({
   };
 
   return (
-    <Sheet title="Organise" onClose={onClose}>
+    <Sheet title={t("org.title")} onClose={onClose}>
       <form onSubmit={save} className="space-y-4">
         <div>
           <label className="label" htmlFor="edit-name">
-            Group name
+            {t("org.nameLabel")}
           </label>
           <input id="edit-name" className="field" required maxLength={LIMITS.groupNameLength} value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div>
           <label className="label" htmlFor="edit-note">
-            Note for the group
+            {t("org.noteLabel")}
           </label>
           <textarea id="edit-note" className="field" rows={2} maxLength={LIMITS.descriptionLength} value={description} onChange={(e) => setDescription(e.target.value)} />
         </div>
         <div>
-          <span className="label">Dates</span>
+          <span className="label">{t("org.dates")}</span>
           <DateRangePicker value={range} onChange={setRange} minDay={group.startDate < today ? group.startDate : today} />
-          {shrinks && <p className="mt-1 font-semibold">Answers for days outside the new dates will be deleted.</p>}
+          {shrinks && <p className="mt-1 font-semibold">{t("org.shrinkWarning")}</p>}
         </div>
         {error && (
           <p role="alert" className="font-semibold text-danger">
@@ -837,27 +877,27 @@ function OrganiserSheet({
           </p>
         )}
         <button type="submit" className="btn btn-primary w-full" disabled={busy}>
-          {busy ? "Saving…" : "Save changes"}
+          {busy ? t("org.saving") : t("org.save")}
         </button>
       </form>
 
       <section className="mt-8">
-        <h3 className="mb-1 text-lg font-bold">People</h3>
-        <p className="mb-2 text-soft">Removing someone also deletes their answers and proposals.</p>
+        <h3 className="mb-1 text-lg font-bold">{t("org.people")}</h3>
+        <p className="mb-2 text-soft">{t("org.peopleBody")}</p>
         <ul className="border-t-[1.5px] border-rule">
           {state.participants.map((person) => (
             <li key={person.id} className="flex items-center justify-between gap-2 border-b-[1.5px] border-rule py-1.5">
-              <span className="truncate">{person.name}{person.id === me.id ? " (you)" : ""}</span>
+              <span className="truncate">{person.id === me.id ? t("org.you", { name: person.name }) : person.name}</span>
               {person.id !== me.id && (
                 <ConfirmButton
-                  label="Remove"
-                  confirmLabel="Click again to remove"
+                  label={t("org.remove")}
+                  confirmLabel={t("org.removeConfirm")}
                   className="btn btn-quiet shrink-0"
                   onConfirm={() =>
                     guarded(async () => {
                       await api(`/api/g/${slug}/participants/${person.id}`, { method: "DELETE" });
                       await onChanged();
-                      toast(`${person.name} removed`);
+                      toast(t("org.removedPerson", { name: person.name }));
                     })
                   }
                 />
@@ -868,11 +908,11 @@ function OrganiserSheet({
       </section>
 
       <section className="mt-8">
-        <h3 className="mb-1 text-lg font-bold">Replace the link</h3>
-        <p className="mb-2 text-soft">Use this if the link reached the wrong people. The old link stops working and answers stay. You'll need to share the new link.</p>
+        <h3 className="mb-1 text-lg font-bold">{t("org.replaceHeading")}</h3>
+        <p className="mb-2 text-soft">{t("org.replaceBody")}</p>
         <ConfirmButton
-          label="Replace link"
-          confirmLabel="Click again to replace"
+          label={t("org.replace")}
+          confirmLabel={t("org.replaceConfirm")}
           className="btn btn-plain"
           onConfirm={() =>
             guarded(async () => {
@@ -882,7 +922,7 @@ function OrganiserSheet({
               const joined = await api<JoinResult>(`/api/g/${fresh}/join`, { method: "POST", body: { name: me.name } });
               saveIdentity(fresh, { token: joined.token, id: joined.participant.id, name: joined.participant.name });
               clearIdentity(slug);
-              toast("Link replaced. Share the new one.");
+              toast(t("org.replaced"));
               navigate(`/g/${fresh}`, { replace: true });
             })
           }
@@ -890,17 +930,17 @@ function OrganiserSheet({
       </section>
 
       <section className="mt-8">
-        <h3 className="mb-1 text-lg font-bold">Delete this group</h3>
-        <p className="mb-2 text-soft">This deletes all answers and proposals straight away. You can't undo it.</p>
+        <h3 className="mb-1 text-lg font-bold">{t("org.deleteHeading")}</h3>
+        <p className="mb-2 text-soft">{t("org.deleteBody")}</p>
         <ConfirmButton
-          label="Delete group"
-          confirmLabel="Click again to delete"
+          label={t("org.delete")}
+          confirmLabel={t("org.deleteConfirm")}
           onConfirm={() =>
             guarded(async () => {
               onLeavingLink();
               await api(`/api/g/${slug}`, { method: "DELETE" });
               clearIdentity(slug);
-              toast("Group deleted");
+              toast(t("org.deleted"));
               navigate("/dashboard", { replace: true });
             })
           }
@@ -908,7 +948,7 @@ function OrganiserSheet({
       </section>
       <p className="mt-6">
         <Link to="/dashboard" className="underline underline-offset-3">
-          All your groups
+          {t("org.allGroups")}
         </Link>
       </p>
     </Sheet>

@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { Route, Routes } from "react-router";
 import type { Account, Config } from "@shared/types";
 import { api } from "./api";
+import { t } from "./i18n";
 import { Spinner, ToastProvider } from "./components/ui";
 import { Dashboard } from "./pages/Dashboard";
 import { GroupPage } from "./pages/GroupPage";
@@ -36,10 +37,10 @@ export function App() {
   if (failed) {
     return (
       <main className="mx-auto max-w-lg px-4 py-20">
-        <h1 className="mb-2 text-3xl font-bold">whenucan could not load</h1>
-        <p className="mb-4">The server did not answer. Check your connection and reload the page.</p>
+        <h1 className="mb-2 text-3xl font-bold">{t("app.loadFailedTitle")}</h1>
+        <p className="mb-4">{t("app.loadFailedBody")}</p>
         <button type="button" className="btn btn-primary" onClick={() => location.reload()}>
-          Reload
+          {t("app.reload")}
         </button>
       </main>
     );

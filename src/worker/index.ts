@@ -1,21 +1,40 @@
+import { errorText, isErrorKey } from "@shared/errors";
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { secureHeaders } from "hono/secure-headers";
 import { ZodError } from "zod";
 import type { Config } from "@shared/types";
 import { authRoutes, cleanupExpired } from "./auth";
-import { ApiError, devLoginEnabled, type AppContext, type Env } from "./env";
+import { ApiError, clientIp, devLoginEnabled, rateLimit, type AppContext, type Env } from "./env";
 import { groupRoutes } from "./groups";
 
 export const app = new Hono<AppContext>();
 
 app.use(secureHeaders({ referrerPolicy: "same-origin", xFrameOptions: "DENY" }));
 
+// Every API request counts, before any database work, so no route can be used to run up reads.
+app.use("/api/*", async (c, next) => {
+  await rateLimit(c.env.RL_READ, clientIp(c.req.raw));
+  await next();
+});
+
+// The largest real request is a full calendar of day changes, well under this.
+app.use(
+  "/api/*",
+  bodyLimit({
+    maxSize: 64 * 1024,
+    onError: () => {
+      throw new ApiError(413, "too_large", "error.checkInput");
+    },
+  }),
+);
+
 // Browsers send Origin on cross-site writes. JSON bodies also force a CORS preflight, which this API never grants.
 app.use("/api/*", async (c, next) => {
   if (c.req.method !== "GET") {
     const origin = c.req.header("origin");
     if (origin && origin !== new URL(c.req.url).origin) {
-      throw new ApiError(403, "bad_origin", "This request came from another site.");
+      throw new ApiError(403, "bad_origin", "error.badOrigin");
     }
   }
   await next();
@@ -37,21 +56,23 @@ app.route("/", authRoutes);
 app.route("/", groupRoutes);
 
 app.all("/api/*", () => {
-  throw new ApiError(404, "not_found", "Not found.");
+  throw new ApiError(404, "not_found", "error.notFound");
 });
 
 app.onError((error, c) => {
   if (error instanceof ApiError) {
-    return c.json({ error: { code: error.code, message: error.message } }, error.status);
+    return c.json({ error: { code: error.code, message: error.message, key: error.key, vars: error.vars } }, error.status);
   }
   if (error instanceof ZodError) {
-    return c.json({ error: { code: "invalid", message: error.issues[0]?.message ?? "Check your input." } }, 400);
+    const issue = error.issues[0]?.message;
+    const key = isErrorKey(issue) ? issue : "error.checkInput";
+    return c.json({ error: { code: "invalid", message: errorText(key), key } }, 400);
   }
   if (error instanceof SyntaxError) {
-    return c.json({ error: { code: "invalid", message: "Send a valid JSON body." } }, 400);
+    return c.json({ error: { code: "invalid", message: errorText("error.invalidJson"), key: "error.invalidJson" } }, 400);
   }
   console.error("[api]", error);
-  return c.json({ error: { code: "server_error", message: "Something failed on the server. Try again." } }, 500);
+  return c.json({ error: { code: "server_error", message: errorText("error.server"), key: "error.server" } }, 500);
 });
 
 export default {

@@ -7,6 +7,7 @@ import { useApp } from "../App";
 import { DayGrid, MarkerTray, type Tally } from "../components/DayGrid";
 import { SiteFooter, useTitle } from "../components/ui";
 import { firstWeekday, localToday } from "../format";
+import { t } from "../i18n";
 import { useTurnstile } from "../turnstile";
 
 export function GoogleIcon() {
@@ -44,7 +45,7 @@ function Demo() {
   }));
   return (
     <div className="rounded-xl border-2 border-ink bg-paper p-3 sm:p-4">
-      <p className="mb-3 font-semibold">Try it: pick a marker, then tap or drag across the days.</p>
+      <p className="mb-3 font-semibold">{t("landing.tryIt")}</p>
       <div className="mb-3">
         <MarkerTray brush={brush} onChange={setBrush} />
       </div>
@@ -64,14 +65,14 @@ function Demo() {
 }
 
 export function Landing() {
-  useTitle("whenucan? Find a date with your group");
+  useTitle(`whenucan? ${t("common.pageTitleSuffix")}`);
   const { config, user, refreshUser } = useApp();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const signingIn = !user && config.googleEnabled;
   const turnstile = useTurnstile(signingIn ? config.turnstileSiteKey : "", "signin");
   const [error, setError] = useState<string | null>(
-    params.get("signin") === "failed" ? "Google sign-in did not finish. Try again." : null,
+    params.get("signin") === "failed" ? t("landing.signInFailed") : null,
   );
   const [busy, setBusy] = useState(false);
 
@@ -111,7 +112,7 @@ export function Landing() {
         <span className="wordmark text-xl">whenucan?</span>
         {user?.groupCount === 0 && (
           <Link to="/dashboard" className="btn btn-quiet">
-            Account
+            {t("landing.account")}
           </Link>
         )}
       </header>
@@ -119,22 +120,21 @@ export function Landing() {
         <div>
           <h1 className="wordmark mb-5 text-[clamp(3.5rem,13vw,8rem)] leading-[0.92]">when u can?</h1>
           <p className="mb-7 max-w-xl text-xl">
-            Send your group one link. They type a name and mark the days that work. You see which dates suit everyone, and nobody has to make
-            an account.
+            {t("landing.tagline")}
           </p>
           <div className="max-w-xl">
             {user ? (
               user.groupCount === 0 ? (
                 <Link to="/new" className="btn btn-primary min-h-16 w-full text-2xl">
-                  Create a group
+                  {t("landing.createGroup")}
                 </Link>
               ) : (
                 <div className="flex gap-2">
                   <Link to="/new" className="btn btn-primary min-h-13 flex-1 px-3 text-lg whitespace-nowrap">
-                    Create a group
+                    {t("landing.createGroup")}
                   </Link>
                   <Link to="/dashboard" className="btn btn-plain min-h-13 flex-1 px-3 text-lg whitespace-nowrap">
-                    Your groups
+                    {t("common.yourGroups")}
                   </Link>
                 </div>
               )
@@ -143,17 +143,17 @@ export function Landing() {
                 {config.googleEnabled && (
                   <button type="button" className="btn btn-google w-full" disabled={busy} onClick={signIn}>
                     <GoogleIcon />
-                    Continue with Google
+                    {t("landing.google")}
                   </button>
                 )}
                 {config.devLogin && (
                   <button type="button" className="btn btn-plain w-full" onClick={devSignIn}>
-                    Sign in as a test organiser
+                    {t("landing.devSignIn")}
                   </button>
                 )}
-                {!config.googleEnabled && !config.devLogin && <p className="font-semibold">Creating groups is not available yet.</p>}
+                {!config.googleEnabled && !config.devLogin && <p className="font-semibold">{t("landing.unavailable")}</p>}
                 <div ref={turnstile.slot} />
-                <p className="pt-1 text-soft">Only the organiser signs in. Everyone else just needs the link.</p>
+                <p className="pt-1 text-soft">{t("landing.onlyOrganiser")}</p>
               </div>
             )}
             {error && (
@@ -164,9 +164,9 @@ export function Landing() {
           </div>
           <ol className="mt-12 max-w-xl space-y-3">
             {[
-              "Name your group and pick a range of dates.",
-              "Share the link in your group chat.",
-              "Everyone marks days yes, OK or no, and can propose exact times to vote on.",
+              t("landing.step1"),
+              t("landing.step2"),
+              t("landing.step3"),
             ].map((step, index) => (
               <li key={step} className="flex gap-3">
                 <span className="font-bold">{index + 1}.</span>
@@ -177,7 +177,7 @@ export function Landing() {
         </div>
         <Demo />
       </main>
-      <SiteFooter />
+      <SiteFooter large />
     </>
   );
 }

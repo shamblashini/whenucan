@@ -7,9 +7,10 @@ import { api, errorMessage } from "../api";
 import { useApp } from "../App";
 import { ConfirmButton, SiteFooter, Spinner, Wordmark, shareUrl, useTitle, useToast } from "../components/ui";
 import { formatRangeDays, formatShort, localToday } from "../format";
+import { t } from "../i18n";
 
 export function Dashboard() {
-  useTitle("Your groups | whenucan?");
+  useTitle(`${t("common.yourGroups")} | whenucan?`);
   const { user, refreshUser } = useApp();
   const navigate = useNavigate();
   const toast = useToast();
@@ -45,7 +46,7 @@ export function Dashboard() {
   const copy = async (slug: string) => {
     try {
       await navigator.clipboard.writeText(shareUrl(slug));
-      toast("Link copied");
+      toast(t("share.copied"));
     } catch {
       toast(shareUrl(slug));
     }
@@ -57,19 +58,19 @@ export function Dashboard() {
         <header className="mb-10 flex items-center justify-between">
           <Wordmark />
           <button type="button" className="btn btn-quiet" onClick={signOut}>
-            Sign out
+            {t("dash.signOut")}
           </button>
         </header>
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-4xl font-bold tracking-tight">Your groups</h1>
+          <h1 className="text-4xl font-bold tracking-tight">{t("common.yourGroups")}</h1>
           <Link to="/new" className="btn btn-primary">
-            New group
+            {t("dash.newGroup")}
           </Link>
         </div>
         {error && <p role="alert" className="font-semibold text-danger">{error}</p>}
         {!groups && !error && <Spinner />}
         {groups?.length === 0 && (
-          <p className="text-lg">You have no groups yet. Create one to get a link you can share.</p>
+          <p className="text-lg">{t("dash.empty")}</p>
         )}
         {groups && groups.length > 0 && (
           <ul className="border-t-[1.5px] border-rule">
@@ -82,12 +83,12 @@ export function Dashboard() {
                       {group.name}
                     </Link>
                     <p className="text-soft">
-                      {formatRangeDays(group.startDate, group.endDate)}, {group.people} {group.people === 1 ? "person" : "people"}
-                      {over && `. Deleted on ${formatShort(addDays(group.endDate, LIMITS.retentionDays + 1))}`}
+                      {t("dash.summary", { range: formatRangeDays(group.startDate, group.endDate), count: group.people })}
+                      {over && `. ${t("dash.deletedOn", { date: formatShort(addDays(group.endDate, LIMITS.retentionDays + 1)) })}`}
                     </p>
                   </div>
                   <button type="button" className="btn btn-plain" onClick={() => copy(group.slug)}>
-                    Copy link
+                    {t("share.copy")}
                   </button>
                 </li>
               );
@@ -95,11 +96,11 @@ export function Dashboard() {
           </ul>
         )}
         <section className="mt-16">
-          <h2 className="mb-1 text-xl font-bold">Your account</h2>
+          <h2 className="mb-1 text-xl font-bold">{t("dash.account")}</h2>
           <p className="mb-3 text-soft">
-            Signed in as {user.name} ({user.email}). Deleting your account also deletes all your groups and everyone's answers in them.
+            {t("dash.signedInAs", { name: user.name, email: user.email })}
           </p>
-          <ConfirmButton label="Delete my account" confirmLabel="Click again to delete everything" onConfirm={deleteAccount} />
+          <ConfirmButton label={t("dash.delete")} confirmLabel={t("dash.deleteConfirm")} onConfirm={deleteAccount} />
         </section>
       </main>
       <SiteFooter />

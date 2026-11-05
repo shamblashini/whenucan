@@ -283,6 +283,22 @@ describe("abuse limits", () => {
   });
 });
 
+describe("request limits", () => {
+  it("refuses oversized bodies", async () => {
+    const response = await call("/api/groups", { method: "POST", body: { name: "x".repeat(70 * 1024) } });
+    expect(response.status).toBe(413);
+  });
+
+  it("rate limits every API route by IP, signed in or not", async () => {
+    const ip = newIp();
+    let last = 200;
+    for (let i = 0; i < 700 && last !== 429; i++) {
+      last = (await call("/api/g/doesnotexist1/proposals/x", { method: "DELETE", ip })).status;
+    }
+    expect(last).toBe(429);
+  });
+});
+
 describe("organiser tools", () => {
   it("validates group fields", async () => {
     const owner = await createOrganiser();

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { t } from "./i18n";
 
 interface TurnstileApi {
   render(element: HTMLElement, options: Record<string, unknown>): string;
@@ -28,8 +29,6 @@ function loadScript(): Promise<TurnstileApi> {
   });
   return scriptPromise;
 }
-
-const BLOCKED_MESSAGE = "The bot check could not load. Turn off content blockers for this site, then reload the page.";
 
 /**
  * Runs Turnstile quietly in the background. It only takes space on the page in the rare
@@ -65,7 +64,7 @@ export function useTurnstile(siteKey: string, action: "join" | "signin") {
           },
           "error-callback": () => {
             token.current = null;
-            const message = "The bot check failed. Reload the page and try again.";
+            const message = t("error.botFailed");
             setProblem(message);
             waiting.current?.reject(new Error(message));
             waiting.current = null;
@@ -74,7 +73,7 @@ export function useTurnstile(siteKey: string, action: "join" | "signin") {
         });
       })
       .catch(() => {
-        if (!cancelled) setProblem(BLOCKED_MESSAGE);
+        if (!cancelled) setProblem(t("error.botBlocked"));
       });
     return () => {
       cancelled = true;
@@ -92,7 +91,7 @@ export function useTurnstile(siteKey: string, action: "join" | "signin") {
       setTimeout(() => {
         if (waiting.current?.resolve === resolve) {
           waiting.current = null;
-          reject(new Error("The bot check is taking too long. Reload the page and try again."));
+          reject(new Error(t("error.botSlow")));
         }
       }, 30_000);
     });

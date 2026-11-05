@@ -7,9 +7,10 @@ import { useApp } from "../App";
 import { DateRangePicker, type Range } from "../components/DateRangePicker";
 import { ShareLink, Wordmark, useTitle } from "../components/ui";
 import { localToday, timezoneLabel, viewerTimezone } from "../format";
+import { t } from "../i18n";
 
 export function NewGroup() {
-  useTitle("New group | whenucan?");
+  useTitle(`${t("new.pageTitle")} | whenucan?`);
   const { user } = useApp();
   const today = useMemo(localToday, []);
   const [name, setName] = useState("");
@@ -24,7 +25,7 @@ export function NewGroup() {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!range.end) {
-      setError("Tap the last day of your date range.");
+      setError(t("new.tapLastDay"));
       return;
     }
     setBusy(true);
@@ -47,24 +48,24 @@ export function NewGroup() {
       <header className="mb-8 flex items-center justify-between">
         <Wordmark />
         <Link to="/dashboard" className="btn btn-quiet">
-          Your groups
+          {t("common.yourGroups")}
         </Link>
       </header>
       {created ? (
         <>
-          <h1 className="mb-2 text-4xl font-bold tracking-tight">{created.name} is ready</h1>
-          <p className="mb-5 text-lg">Send this link to your group. Anyone who has it can open the calendar and answer.</p>
+          <h1 className="mb-2 text-4xl font-bold tracking-tight">{t("new.ready", { name: created.name })}</h1>
+          <p className="mb-5 text-lg">{t("new.readyBody")}</p>
           <ShareLink slug={created.slug} groupName={created.name} />
           <Link to={`/g/${created.slug}`} className="btn btn-plain mt-2 w-full">
-            Open the calendar
+            {t("new.openCalendar")}
           </Link>
         </>
       ) : (
         <form onSubmit={submit} className="space-y-6">
-          <h1 className="text-4xl font-bold tracking-tight">New group</h1>
+          <h1 className="text-4xl font-bold tracking-tight">{t("new.heading")}</h1>
           <div>
             <label className="label" htmlFor="group-name">
-              What are you planning?
+              {t("new.nameLabel")}
             </label>
             <input
               id="group-name"
@@ -72,37 +73,37 @@ export function NewGroup() {
               required
               autoFocus
               maxLength={LIMITS.groupNameLength}
-              placeholder="Ski trip, Friday dinner, band practice"
+              placeholder={t("new.namePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div>
             <label className="label" htmlFor="group-note">
-              Note for the group (optional)
+              {t("new.noteLabel")}
             </label>
             <textarea
               id="group-note"
               className="field"
               rows={2}
               maxLength={LIMITS.descriptionLength}
-              placeholder="Anything people should know before they answer"
+              placeholder={t("new.notePlaceholder")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
           <div>
-            <span className="label">Which dates are possible?</span>
+            <span className="label">{t("new.datesLabel")}</span>
             <DateRangePicker value={range} onChange={setRange} />
           </div>
-          <p className="text-soft">Times in this group will be in {timezoneLabel(viewerTimezone())} time.</p>
+          <p className="text-soft">{t("new.timesIn", { zone: timezoneLabel(viewerTimezone()) })}</p>
           {error && (
             <p role="alert" className="font-semibold text-danger">
               {error}
             </p>
           )}
           <button type="submit" className="btn btn-primary w-full text-lg" disabled={busy}>
-            {busy ? "Creating…" : "Create group"}
+            {busy ? t("new.creating") : t("new.create")}
           </button>
         </form>
       )}

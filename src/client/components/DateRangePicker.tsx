@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { addDays, addMonths, daysBetween, eachDay, firstOfMonth, lastOfMonth, weekday } from "@shared/dates";
 import { LIMITS } from "@shared/limits";
 import { firstWeekday, formatDayLong, formatMonth, formatRangeDays, localToday, weekdayLabels } from "../format";
+import { t } from "../i18n";
 
 export interface Range {
   start: string;
@@ -26,10 +27,10 @@ export function DateRangePicker({ value, onChange, minDay }: { value: Range; onC
   const blanks = (weekday(month) - first + 7) % 7;
 
   const presets = [
-    { label: "Next 7 days", start: today, end: addDays(today, 6) },
-    { label: "Next 2 weeks", start: today, end: addDays(today, 13) },
-    { label: "Next 30 days", start: today, end: addDays(today, 29) },
-    { label: "Next month", start: addMonths(today, 1), end: lastOfMonth(addMonths(today, 1)) },
+    { label: t("picker.next7"), start: today, end: addDays(today, 6) },
+    { label: t("picker.next2w"), start: today, end: addDays(today, 13) },
+    { label: t("picker.next30"), start: today, end: addDays(today, 29) },
+    { label: t("picker.nextMonth"), start: addMonths(today, 1), end: lastOfMonth(addMonths(today, 1)) },
   ];
 
   return (
@@ -51,13 +52,13 @@ export function DateRangePicker({ value, onChange, minDay }: { value: Range; onC
       </div>
       <div className="rounded-lg border-[1.5px] border-rule bg-sheet p-2.5">
         <div className="mb-1 flex items-center justify-between">
-          <button type="button" className="btn btn-quiet min-w-11 text-2xl leading-none no-underline" aria-label="Previous month" disabled={month <= firstOfMonth(min)} onClick={() => setMonth(addMonths(month, -1))}>
+          <button type="button" className="btn btn-quiet min-w-11 text-2xl leading-none no-underline" aria-label={t("picker.prevMonthLabel")} disabled={month <= firstOfMonth(min)} onClick={() => setMonth(addMonths(month, -1))}>
             ‹
           </button>
           <span className="font-bold" aria-live="polite">
             {formatMonth(month)}
           </span>
-          <button type="button" className="btn btn-quiet min-w-11 text-2xl leading-none no-underline" aria-label="Next month" onClick={() => setMonth(addMonths(month, 1))}>
+          <button type="button" className="btn btn-quiet min-w-11 text-2xl leading-none no-underline" aria-label={t("picker.nextMonthLabel")} onClick={() => setMonth(addMonths(month, 1))}>
             ›
           </button>
         </div>
@@ -93,8 +94,8 @@ export function DateRangePicker({ value, onChange, minDay }: { value: Range; onC
       </div>
       <p className="mt-2 text-soft" aria-live="polite">
         {value.end
-          ? `${formatRangeDays(value.start, value.end)} (${daysBetween(value.start, value.end) + 1} ${value.start === value.end ? "day" : "days"})`
-          : "Now tap the last day. Tap the same day again for a single date."}
+          ? t("picker.summary", { range: formatRangeDays(value.start, value.end), count: daysBetween(value.start, value.end) + 1 })
+          : t("picker.tapLast")}
       </p>
     </div>
   );

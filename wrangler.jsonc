@@ -23,7 +23,7 @@
   "triggers": { "crons": ["23 3 * * *"] },
   // Rate limits per Cloudflare location. `period` can only be 10 or 60 seconds.
   "ratelimits": [
-    { "name": "RL_READ", "namespace_id": "4101", "simple": { "limit": 300, "period": 60 } },
+    { "name": "RL_READ", "namespace_id": "4101", "simple": { "limit": 600, "period": 60 } },
     { "name": "RL_WRITE", "namespace_id": "4102", "simple": { "limit": 120, "period": 60 } },
     { "name": "RL_JOIN", "namespace_id": "4103", "simple": { "limit": 15, "period": 60 } },
     { "name": "RL_AUTH", "namespace_id": "4104", "simple": { "limit": 20, "period": 60 } }

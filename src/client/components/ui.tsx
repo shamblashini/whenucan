@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { Link } from "react-router";
 import type { Vote } from "@shared/types";
 import { useApp } from "../App";
+import { t } from "../i18n";
 
 export function useTitle(title: string): void {
   useEffect(() => {
@@ -11,7 +12,7 @@ export function useTitle(title: string): void {
 
 export function Wordmark({ className = "text-xl" }: { className?: string }) {
   return (
-    <Link to="/" className={`wordmark no-underline ${className}`} aria-label="whenucan home">
+    <Link to="/" className={`wordmark no-underline ${className}`} aria-label={t("common.home")}>
       whenucan?
     </Link>
   );
@@ -30,10 +31,10 @@ export function Glyph({ value, className }: { value: Vote; className?: string })
   );
 }
 
-export function Spinner({ label = "Loading" }: { label?: string }) {
+export function Spinner() {
   return (
     <p role="status" className="py-16 text-center text-soft">
-      {label}…
+      {t("common.loading")}
     </p>
   );
 }
@@ -73,7 +74,7 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
           {title}
         </h2>
         <button type="button" className="btn btn-quiet" onClick={() => ref.current?.close()}>
-          Close
+          {t("common.close")}
         </button>
       </div>
       {children}
@@ -135,27 +136,27 @@ export function ShareLink({ slug, groupName }: { slug: string; groupName: string
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(url);
-      toast("Link copied");
+      toast(t("share.copied"));
     } catch {
       input.current?.select();
-      toast("Press copy on your keyboard to copy the link");
+      toast(t("share.pressCopy"));
     }
   };
   const canShare = typeof navigator.share === "function" && matchMedia("(pointer: coarse)").matches;
   return (
     <div>
-      <input ref={input} className="field mb-2 font-medium" readOnly value={url} aria-label="Share link" onFocus={(e) => e.target.select()} />
+      <input ref={input} className="field mb-2 font-medium" readOnly value={url} aria-label={t("share.label")} onFocus={(e) => e.target.select()} />
       <div className="flex flex-wrap gap-2">
         <button type="button" className="btn btn-primary grow" onClick={copy}>
-          Copy link
+          {t("share.copy")}
         </button>
         {canShare && (
           <button
             type="button"
             className="btn btn-plain grow"
-            onClick={() => navigator.share({ title: groupName, text: `When can you? Mark your days for ${groupName}.`, url }).catch(() => {})}
+            onClick={() => navigator.share({ title: groupName, text: t("share.text", { group: groupName }), url }).catch(() => {})}
           >
-            Share
+            {t("share.share")}
           </button>
         )}
       </div>
@@ -163,30 +164,61 @@ export function ShareLink({ slug, groupName }: { slug: string; groupName: string
   );
 }
 
-export function SiteFooter() {
+function GitHubLogo({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+    </svg>
+  );
+}
+
+/** The landing page gets the large footer. Everywhere else it stays out of the way. */
+export function SiteFooter({ large = false }: { large?: boolean }) {
   const { config } = useApp();
+  if (!large) {
+    return (
+      <footer className="mx-auto mt-auto max-w-6xl px-4 pt-10 pb-4">
+        <nav aria-label="whenucan" className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-soft">
+          {config.repoUrl && (
+            <>
+              <a href={config.repoUrl} className="inline-flex items-center gap-1.5 underline underline-offset-3 hover:text-ink">
+                <GitHubLogo className="h-[1em] w-[1em]" />
+                {t("footer.source")}
+              </a>
+              <a href={`${config.repoUrl}/issues`} className="underline underline-offset-3 hover:text-ink">
+                {t("footer.report")}
+              </a>
+            </>
+          )}
+          <Link to="/privacy" className="underline underline-offset-3 hover:text-ink">
+            {t("footer.privacy")}
+          </Link>
+        </nav>
+      </footer>
+    );
+  }
   return (
     <footer className="mx-auto mt-auto max-w-6xl px-4 pt-16 pb-8">
       <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4 border-t-[1.5px] border-rule pt-5 text-lg">
         {config.repoUrl && (
           <a href={config.repoUrl} className="group flex items-center gap-3">
-            <svg viewBox="0 0 16 16" className="h-12 w-12" fill="currentColor" aria-hidden="true">
-              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
-            </svg>
+            <GitHubLogo className="h-12 w-12 shrink-0" />
             <span>
-              <span className="block font-bold underline-offset-3 group-hover:underline">{new URL(config.repoUrl).pathname.slice(1)} on GitHub</span>
-              <span className="block text-base text-soft">Free and open source, with no ads</span>
+              <span className="block font-bold underline-offset-3 group-hover:underline">
+                {t("footer.onGitHub", { repo: new URL(config.repoUrl).pathname.slice(1) })}
+              </span>
+              <span className="block text-base text-soft">{t("footer.openSource")}</span>
             </span>
           </a>
         )}
-        <nav aria-label="About whenucan" className="flex flex-wrap items-center gap-x-6 gap-y-1">
+        <nav aria-label="whenucan" className="flex flex-wrap items-center gap-x-6 gap-y-1">
           {config.repoUrl && (
             <a href={`${config.repoUrl}/issues`} className="underline underline-offset-3">
-              Report a problem
+              {t("footer.report")}
             </a>
           )}
           <Link to="/privacy" className="underline underline-offset-3">
-            Privacy and data deletion
+            {t("footer.privacyLong")}
           </Link>
         </nav>
       </div>

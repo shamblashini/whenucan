@@ -1,15 +1,16 @@
 import { Link } from "react-router";
 import { Wordmark, useTitle } from "../components/ui";
+import { t } from "../i18n";
 
 export function NotFound() {
-  useTitle("Page not found | whenucan?");
+  useTitle(`${t("notFound.pageTitle")} | whenucan?`);
   return (
     <main className="mx-auto max-w-lg px-4 py-10">
       <Wordmark />
-      <h1 className="mt-16 mb-2 text-4xl font-bold tracking-tight">This page does not exist</h1>
-      <p className="mb-6">Check the address, or start from the home page.</p>
+      <h1 className="mt-16 mb-2 text-4xl font-bold tracking-tight">{t("notFound.heading")}</h1>
+      <p className="mb-6">{t("notFound.body")}</p>
       <Link to="/" className="btn btn-primary">
-        Go to the home page
+        {t("notFound.home")}
       </Link>
     </main>
   );
