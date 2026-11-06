@@ -53,7 +53,7 @@ Most people will open the link from a group chat. Marking days works with a thum
 - **No accounts for guests.** Only the organiser signs in. The same name on another device is the same person.
 - **25 European languages plus English.** The app follows the browser's language. [Add yours](#add-a-language).
 - **Your clock format.** 24-hour time in Europe and wherever the language uses it. Dates follow the language too.
-- **Calendars.** Add any proposed time to Google Calendar or Apple Calendar with one button, in the group's time zone.
+- **Calendars.** Add any proposed time to Google Calendar, Apple Calendar, Outlook or any app that opens `.ics` files, in the group's time zone.
 - **Live updates.** Other people's answers appear within seconds, with no reload.
 - **Abuse protection.** Invisible Cloudflare Turnstile, rate limits and caps on people, proposals and groups.
 - **Organiser controls.** Remove people, delete proposals, replace the link or delete the group.

@@ -182,7 +182,7 @@ const messages: Messages = {
   "proposal.remove": "Eemalda ettepanek",
   "proposal.removeConfirm": "Klõpsa uuesti, et eemaldada",
   "proposal.addToCalendar": "Lisa Google'i kalendrisse",
-  "proposal.addToAppleCalendar": "Lisa Apple'i kalendrisse",
+  "proposal.addToOtherCalendar": "Apple, Outlook ja muud kalendrid",
 
   "form.title": "Paku aeg",
   "form.plan": "Mis plaan on? (valikuline)",

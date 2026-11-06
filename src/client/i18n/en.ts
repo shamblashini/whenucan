@@ -149,7 +149,7 @@ export const en = {
   "proposal.remove": "Remove proposal",
   "proposal.removeConfirm": "Click again to remove",
   "proposal.addToCalendar": "Add to Google Calendar",
-  "proposal.addToAppleCalendar": "Add to Apple Calendar",
+  "proposal.addToOtherCalendar": "Apple, Outlook and other calendars",
 
   "form.title": "Propose a time",
   "form.plan": "What's the plan? (optional)",

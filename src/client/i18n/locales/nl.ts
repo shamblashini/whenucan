@@ -182,7 +182,7 @@ const messages: Messages = {
   "proposal.remove": "Voorstel verwijderen",
   "proposal.removeConfirm": "Klik nog een keer om te verwijderen",
   "proposal.addToCalendar": "Toevoegen aan Google Agenda",
-  "proposal.addToAppleCalendar": "Toevoegen aan Apple Agenda",
+  "proposal.addToOtherCalendar": "Apple, Outlook en andere agenda's",
 
   "form.title": "Stel een tijd voor",
   "form.plan": "Wat is het plan? (optioneel)",

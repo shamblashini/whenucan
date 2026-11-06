@@ -375,7 +375,7 @@ function Planner({
                     participants={state.participants}
                     me={identity.id}
                     canDelete={meta.isOwner || proposal.createdBy === identity.id}
-                    appleCalendarUrl={`/api/g/${slug}/proposals/${proposal.id}/calendar.ics`}
+                    icsUrl={`/api/g/${slug}/proposals/${proposal.id}/calendar.ics`}
                     calendarUrl={googleCalendarUrl({
                       title: proposal.title ? `${proposal.title} (${group.name})` : group.name,
                       startsAt: proposal.startsAt,
@@ -570,7 +570,7 @@ function CalendarIcon() {
 }
 
 function ProposalRow({
-  proposal, names, participants, me, canDelete, calendarUrl, appleCalendarUrl, onVote, onDelete,
+  proposal, names, participants, me, canDelete, calendarUrl, icsUrl, onVote, onDelete,
 }: {
   proposal: Proposal;
   names: Map<string, string>;
@@ -578,7 +578,7 @@ function ProposalRow({
   me: string;
   canDelete: boolean;
   calendarUrl: string;
-  appleCalendarUrl: string;
+  icsUrl: string;
   onVote: (value: Vote | null) => void;
   onDelete: () => Promise<void>;
 }) {
@@ -635,9 +635,9 @@ function ProposalRow({
           <CalendarIcon />
           {t("proposal.addToCalendar")}
         </a>
-        <a href={appleCalendarUrl} className="btn btn-plain min-h-9 px-3 py-1">
+        <a href={icsUrl} target="_self" className="btn btn-plain min-h-9 px-3 py-1">
           <CalendarIcon />
-          {t("proposal.addToAppleCalendar")}
+          {t("proposal.addToOtherCalendar")}
         </a>
         {canDelete && (
           <ConfirmButton label={t("proposal.remove")} confirmLabel={t("proposal.removeConfirm")} onConfirm={onDelete} className="btn btn-quiet" />

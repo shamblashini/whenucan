@@ -182,7 +182,7 @@ const messages: Messages = {
   "proposal.remove": "Elimină propunerea",
   "proposal.removeConfirm": "Dă clic din nou ca să elimini",
   "proposal.addToCalendar": "Adaugă în Google Calendar",
-  "proposal.addToAppleCalendar": "Adaugă în Calendarul Apple",
+  "proposal.addToOtherCalendar": "Apple, Outlook și alte calendare",
 
   "form.title": "Propune o oră",
   "form.plan": "Care e planul? (opțional)",

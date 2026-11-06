@@ -182,7 +182,7 @@ const messages: Messages = {
   "proposal.remove": "Ukloni prijedlog",
   "proposal.removeConfirm": "Klikni ponovno za uklanjanje",
   "proposal.addToCalendar": "Dodaj u Google kalendar",
-  "proposal.addToAppleCalendar": "Dodaj u Apple kalendar",
+  "proposal.addToOtherCalendar": "Apple, Outlook i drugi kalendari",
 
   "form.title": "Predloži vrijeme",
   "form.plan": "Kakav je plan? (neobavezno)",

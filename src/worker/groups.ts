@@ -445,7 +445,9 @@ groupRoutes.get("/api/g/:slug/proposals/:id/calendar.ics", async (c) => {
   });
   return c.body(body, 200, {
     "Content-Type": "text/calendar; charset=utf-8",
-    "Content-Disposition": 'attachment; filename="whenucan.ics"',
+    // No "attachment" and no filename: either can make iPhones save a file instead of offering to add the event.
+    "Content-Disposition": "inline",
+    "Cache-Control": "private, no-store",
   });
 });
 

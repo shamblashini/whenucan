@@ -182,7 +182,7 @@ const messages: Messages = {
   "proposal.remove": "Премахни предложението",
   "proposal.removeConfirm": "Кликни отново, за да премахнеш",
   "proposal.addToCalendar": "Добави в Google Календар",
-  "proposal.addToAppleCalendar": "Добави в Apple Календар",
+  "proposal.addToOtherCalendar": "Apple, Outlook и други календари",
 
   "form.title": "Предложи час",
   "form.plan": "Какъв е планът? (по желание)",

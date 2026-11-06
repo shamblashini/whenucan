@@ -294,6 +294,9 @@ describe("calendar file", () => {
     const response = await call(`/api/g/${slug}/proposals/${id}/calendar.ics`);
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("text/calendar");
+    expect(response.headers.get("content-disposition")).toBe("inline");
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.has("x-download-options")).toBe(false);
     const text = await response.text();
     expect(text).toContain("DTSTART:20300112T180000Z\r\n");
     expect(text).toContain("DTEND:20300112T203000Z\r\n");

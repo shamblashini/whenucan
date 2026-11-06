@@ -182,7 +182,7 @@ const messages: Messages = {
   "proposal.remove": "Poista ehdotus",
   "proposal.removeConfirm": "Poista napsauttamalla uudelleen",
   "proposal.addToCalendar": "Lisää Google Kalenteriin",
-  "proposal.addToAppleCalendar": "Lisää Applen Kalenteriin",
+  "proposal.addToOtherCalendar": "Apple, Outlook ja muut kalenterit",
 
   "form.title": "Ehdota aikaa",
   "form.plan": "Mikä on suunnitelma? (valinnainen)",

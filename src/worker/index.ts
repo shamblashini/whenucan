@@ -10,7 +10,8 @@ import { groupRoutes } from "./groups";
 
 export const app = new Hono<AppContext>();
 
-app.use(secureHeaders({ referrerPolicy: "same-origin", xFrameOptions: "DENY" }));
+// X-Download-Options only ever applied to Internet Explorer, and it says not to open files.
+app.use(secureHeaders({ referrerPolicy: "same-origin", xFrameOptions: "DENY", xDownloadOptions: false }));
 
 // Every API request counts, before any database work, so no route can be used to run up reads.
 app.use("/api/*", async (c, next) => {

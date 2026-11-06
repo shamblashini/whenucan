@@ -182,7 +182,7 @@ const messages: Messages = {
   "proposal.remove": "Pašalinti pasiūlymą",
   "proposal.removeConfirm": "Spustelėk dar kartą, kad pašalintum",
   "proposal.addToCalendar": "Pridėti į Google kalendorių",
-  "proposal.addToAppleCalendar": "Pridėti į Apple kalendorių",
+  "proposal.addToOtherCalendar": "Apple, Outlook ir kiti kalendoriai",
 
   "form.title": "Pasiūlyti laiką",
   "form.plan": "Koks planas? (neprivaloma)",

@@ -182,7 +182,7 @@ const messages: Messages = {
   "proposal.remove": "Javaslat eltávolítása",
   "proposal.removeConfirm": "Kattints újra az eltávolításhoz",
   "proposal.addToCalendar": "Hozzáadás a Google Naptárhoz",
-  "proposal.addToAppleCalendar": "Hozzáadás az Apple Naptárhoz",
+  "proposal.addToOtherCalendar": "Apple, Outlook és más naptárak",
 
   "form.title": "Időpont javaslata",
   "form.plan": "Mi a terv? (nem kötelező)",

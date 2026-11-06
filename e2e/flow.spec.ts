@@ -187,8 +187,8 @@ test("a proposal can go to Google Calendar, with the clock format of the visitor
   expect(target.searchParams.get("text")).toMatch(/^Pizza \(Dinner /);
   expect(target.searchParams.get("details")).toContain(url);
 
-  const apple = await row.getByRole("link", { name: "Add to Apple Calendar" }).getAttribute("href");
-  const file = await warsaw.request.get(apple!);
+  const ics = await row.getByRole("link", { name: "Apple, Outlook and other calendars" }).getAttribute("href");
+  const file = await warsaw.request.get(ics!);
   expect(file.headers()["content-type"]).toContain("text/calendar");
   expect(await file.text()).toMatch(/SUMMARY:Pizza \(Dinner /);
 
