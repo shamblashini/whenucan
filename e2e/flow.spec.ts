@@ -126,7 +126,15 @@ test("the landing page offers your groups only once you have some", async ({ pag
   await page.getByRole("link", { name: "Account" }).click();
   await expect(page.getByRole("button", { name: "Delete my account" })).toBeVisible();
 
+  // A reload must not look signed out while the account is still loading.
+  await page.route("**/api/me", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await route.continue();
+  });
   await page.goto("/new");
+  await expect(page.getByRole("heading", { name: "New group" })).toBeVisible();
+  await page.unroute("**/api/me");
+
   await fillNewGroup(page, `Lunch ${Date.now()}`);
   await page.goto("/");
   const groups = page.getByRole("link", { name: "Your groups" });
@@ -178,6 +186,11 @@ test("a proposal can go to Google Calendar, with the clock format of the visitor
   expect(target.searchParams.get("dates")).toMatch(/^\d{8}T183000\/\d{8}T210000$/);
   expect(target.searchParams.get("text")).toMatch(/^Pizza \(Dinner /);
   expect(target.searchParams.get("details")).toContain(url);
+
+  const apple = await row.getByRole("link", { name: "Add to Apple Calendar" }).getAttribute("href");
+  const file = await warsaw.request.get(apple!);
+  expect(file.headers()["content-type"]).toContain("text/calendar");
+  expect(await file.text()).toMatch(/SUMMARY:Pizza \(Dinner /);
 
   const america = await (await browser.newContext({ locale: "en-US", timezoneId: "America/New_York" })).newPage();
   await america.goto(url);

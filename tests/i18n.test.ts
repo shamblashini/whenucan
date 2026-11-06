@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { en, type Plural } from "../src/client/i18n/en";
 import { pickLanguage } from "../src/client/i18n";
 import { googleCalendarUrl, prefers24Hour } from "../src/client/format";
+import { calendarFile, zonedToUtc } from "../src/worker/ics";
 
 const files = import.meta.glob<{ default: Record<string, string | Plural> }>("../src/client/i18n/locales/*.ts", { eager: true });
 const locales = Object.entries(files).map(([path, module]) => [path.split("/").pop()!.replace(".ts", ""), module.default] as const);
@@ -78,5 +79,29 @@ describe("googleCalendarUrl", () => {
       ctz: "Europe/Warsaw",
       details: "https://whenucan.app/g/abc",
     });
+  });
+});
+
+describe("calendar files", () => {
+  const iso = (local: string, zone: string) => new Date(zonedToUtc(local, zone)).toISOString();
+  it("converts wall-clock times across clock changes", () => {
+    expect(iso("2026-01-15T18:30", "Europe/Warsaw")).toBe("2026-01-15T17:30:00.000Z");
+    expect(iso("2026-07-15T18:30", "Europe/Warsaw")).toBe("2026-07-15T16:30:00.000Z");
+    expect(iso("2026-07-15T18:30", "America/New_York")).toBe("2026-07-15T22:30:00.000Z");
+    expect(iso("2026-03-29T12:00", "Europe/Warsaw")).toBe("2026-03-29T10:00:00.000Z");
+    expect(iso("2026-07-15T18:30", "UTC")).toBe("2026-07-15T18:30:00.000Z");
+  });
+
+  it("escapes text and keeps every line within 75 bytes", () => {
+    const text = calendarFile({
+      uid: "abc@example.com", title: "Żółć, ".repeat(30), description: "line one\nline two; end", url: "https://example.com/g/abc",
+      startsAt: "2026-07-15T18:30", endsAt: "2026-07-15T20:00", timezone: "UTC", now: 0,
+    });
+    const lines = text.split("\r\n");
+    for (const line of lines) expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75);
+    expect(text.replaceAll("\r\n ", "")).toContain("DESCRIPTION:line one\\nline two\\; end");
+    expect(text.replaceAll("\r\n ", "")).toContain("SUMMARY:Żółć\\, Żółć");
+    expect(lines.at(-1)).toBe("");
+    expect(text).not.toMatch(/[^\r]\n/);
   });
 });

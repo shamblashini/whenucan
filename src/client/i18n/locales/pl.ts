@@ -202,6 +202,7 @@ const messages: Messages = {
   "proposal.remove": "Usuń propozycję",
   "proposal.removeConfirm": "Kliknij jeszcze raz, aby usunąć",
   "proposal.addToCalendar": "Dodaj do Kalendarza Google",
+  "proposal.addToAppleCalendar": "Dodaj do Kalendarza Apple",
 
   "form.title": "Zaproponuj termin",
   "form.plan": "Jaki jest plan? (opcjonalnie)",

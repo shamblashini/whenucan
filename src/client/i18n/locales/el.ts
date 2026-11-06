@@ -182,6 +182,7 @@ const messages: Messages = {
   "proposal.remove": "Αφαίρεσε την πρόταση",
   "proposal.removeConfirm": "Κάνε ξανά κλικ για αφαίρεση",
   "proposal.addToCalendar": "Πρόσθεσε στο Ημερολόγιο Google",
+  "proposal.addToAppleCalendar": "Πρόσθεσε στο Ημερολόγιο Apple",
 
   "form.title": "Πρότεινε μια ώρα",
   "form.plan": "Ποιο είναι το σχέδιο; (προαιρετικά)",

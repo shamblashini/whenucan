@@ -31,7 +31,10 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    Promise.all([api<Config>("/api/config").then(setConfig), refreshUser()]).catch(() => setFailed(true));
+    // The page renders once config is set, so set it last: pages must never see a signed-in user as signed out.
+    Promise.all([api<Config>("/api/config"), refreshUser()])
+      .then(([loaded]) => setConfig(loaded))
+      .catch(() => setFailed(true));
   }, [refreshUser]);
 
   if (failed) {

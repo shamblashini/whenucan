@@ -7,6 +7,7 @@ import { cleanName, cleanText, nameKey } from "@shared/names";
 import type { GroupMeta, GroupState, GroupSummary, JoinResult, Proposal, Vote } from "@shared/types";
 import { currentUser, requireUser } from "./auth";
 import { ApiError, clientIp, newSlug, rateLimit, secretKey, type AppContext } from "./env";
+import { calendarFile } from "./ics";
 import { verifyTurnstile } from "./turnstile";
 
 interface GroupRow {
@@ -419,6 +420,33 @@ groupRoutes.put("/api/g/:slug/proposals/:id/vote", async (c) => {
     bumpVersion(c, group.id),
   ]);
   return c.json({ ok: true });
+});
+
+/**
+ * The file calendar apps add an event from. Browsers open it with a plain link, so there is no
+ * token: the share link and the proposal's random ID are what grant access.
+ */
+groupRoutes.get("/api/g/:slug/proposals/:id/calendar.ics", async (c) => {
+  const group = await findGroup(c, c.req.param("slug"));
+  const proposal = await c.env.DB.prepare("SELECT id, title, starts_at, ends_at FROM proposals WHERE id = ? AND group_id = ?")
+    .bind(c.req.param("id"), group.id)
+    .first<{ id: string; title: string; starts_at: string; ends_at: string }>();
+  if (!proposal) throw new ApiError(404, "proposal_not_found", "error.proposalRemoved");
+  const { origin, hostname } = new URL(c.req.url);
+  const link = `${origin}/g/${group.slug}`;
+  const body = calendarFile({
+    uid: `${proposal.id}@${hostname}`,
+    title: proposal.title ? `${proposal.title} (${group.name})` : group.name,
+    description: [group.description, link].filter(Boolean).join("\n\n"),
+    url: link,
+    startsAt: proposal.starts_at,
+    endsAt: proposal.ends_at,
+    timezone: group.timezone,
+  });
+  return c.body(body, 200, {
+    "Content-Type": "text/calendar; charset=utf-8",
+    "Content-Disposition": 'attachment; filename="whenucan.ics"',
+  });
 });
 
 /** The person who proposed it can remove it, and so can the organiser. */

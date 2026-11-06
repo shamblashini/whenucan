@@ -202,6 +202,7 @@ const messages: Messages = {
   "proposal.remove": "Odstranit návrh",
   "proposal.removeConfirm": "Klikni znovu pro odstranění",
   "proposal.addToCalendar": "Přidat do Kalendáře Google",
+  "proposal.addToAppleCalendar": "Přidat do Kalendáře Apple",
 
   "form.title": "Navrhnout čas",
   "form.plan": "Jaký je plán? (nepovinné)",

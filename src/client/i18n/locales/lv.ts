@@ -182,6 +182,7 @@ const messages: Messages = {
   "proposal.remove": "Noņemt piedāvājumu",
   "proposal.removeConfirm": "Noklikšķini vēlreiz, lai noņemtu",
   "proposal.addToCalendar": "Pievienot Google kalendāram",
+  "proposal.addToAppleCalendar": "Pievienot Apple kalendāram",
 
   "form.title": "Piedāvāt laiku",
   "form.plan": "Kāds ir plāns? (nav obligāti)",

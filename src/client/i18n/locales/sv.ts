@@ -182,6 +182,7 @@ const messages: Messages = {
   "proposal.remove": "Ta bort förslag",
   "proposal.removeConfirm": "Klicka igen för att ta bort",
   "proposal.addToCalendar": "Lägg till i Google Kalender",
+  "proposal.addToAppleCalendar": "Lägg till i Apple Kalender",
 
   "form.title": "Föreslå en tid",
   "form.plan": "Vad är planen? (valfritt)",

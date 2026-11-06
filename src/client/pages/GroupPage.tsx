@@ -375,6 +375,7 @@ function Planner({
                     participants={state.participants}
                     me={identity.id}
                     canDelete={meta.isOwner || proposal.createdBy === identity.id}
+                    appleCalendarUrl={`/api/g/${slug}/proposals/${proposal.id}/calendar.ics`}
                     calendarUrl={googleCalendarUrl({
                       title: proposal.title ? `${proposal.title} (${group.name})` : group.name,
                       startsAt: proposal.startsAt,
@@ -559,8 +560,17 @@ function DayDetail({ day, state, onPropose }: { day: string; state: GroupState; 
   );
 }
 
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+      <rect x="2" y="3" width="12" height="11" rx="1.5" />
+      <path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3M8 8.5v3.5M6.25 10.25h3.5" />
+    </svg>
+  );
+}
+
 function ProposalRow({
-  proposal, names, participants, me, canDelete, calendarUrl, onVote, onDelete,
+  proposal, names, participants, me, canDelete, calendarUrl, appleCalendarUrl, onVote, onDelete,
 }: {
   proposal: Proposal;
   names: Map<string, string>;
@@ -568,6 +578,7 @@ function ProposalRow({
   me: string;
   canDelete: boolean;
   calendarUrl: string;
+  appleCalendarUrl: string;
   onVote: (value: Vote | null) => void;
   onDelete: () => Promise<void>;
 }) {
@@ -621,11 +632,12 @@ function ProposalRow({
       </dl>
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
         <a href={calendarUrl} target="_blank" rel="noopener noreferrer" className="btn btn-plain min-h-9 px-3 py-1">
-          <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
-            <rect x="2" y="3" width="12" height="11" rx="1.5" />
-            <path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3M8 8.5v3.5M6.25 10.25h3.5" />
-          </svg>
+          <CalendarIcon />
           {t("proposal.addToCalendar")}
+        </a>
+        <a href={appleCalendarUrl} className="btn btn-plain min-h-9 px-3 py-1">
+          <CalendarIcon />
+          {t("proposal.addToAppleCalendar")}
         </a>
         {canDelete && (
           <ConfirmButton label={t("proposal.remove")} confirmLabel={t("proposal.removeConfirm")} onConfirm={onDelete} className="btn btn-quiet" />

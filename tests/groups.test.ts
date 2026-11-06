@@ -283,6 +283,30 @@ describe("abuse limits", () => {
   });
 });
 
+describe("calendar file", () => {
+  it("serves a proposal as an .ics file with UTC times", async () => {
+    const { owner, slug } = await setup();
+    await testEnv.DB.prepare("UPDATE groups SET timezone = 'Europe/Warsaw' WHERE slug = ?").bind(slug).run();
+    const bob = await join(slug, "Bob");
+    const body = { title: "Dinner, drinks; more", startsAt: "2030-01-12T19:00", endsAt: "2030-01-12T21:30" };
+    const { id } = (await (await call(`/api/g/${slug}/proposals`, { method: "POST", token: bob.token, body })).json()) as { id: string };
+
+    const response = await call(`/api/g/${slug}/proposals/${id}/calendar.ics`);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("text/calendar");
+    const text = await response.text();
+    expect(text).toContain("DTSTART:20300112T180000Z\r\n");
+    expect(text).toContain("DTEND:20300112T203000Z\r\n");
+    expect(text).toContain("SUMMARY:Dinner\\, drinks\\; more");
+    expect(text).toContain(`URL:http://localhost/g/${slug}\r\n`);
+
+    expect((await call(`/api/g/${slug}/proposals/not-a-proposal/calendar.ics`)).status).toBe(404);
+    // A proposal ID only works with the current link of its own group.
+    const other = await createGroup(owner.cookie);
+    expect((await call(`/api/g/${other}/proposals/${id}/calendar.ics`)).status).toBe(404);
+  });
+});
+
 describe("request limits", () => {
   it("refuses oversized bodies", async () => {
     const response = await call("/api/groups", { method: "POST", body: { name: "x".repeat(70 * 1024) } });
