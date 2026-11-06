@@ -159,6 +159,7 @@ test("best days show who can make it", async ({ page, browser }) => {
   const best = anna.locator(".best-day").first();
   await expect(best).toContainText("1 of 2 can make it", { timeout: 15_000 });
   await expect(best).toContainText("Can't: Bob");
+  await expect(best).toContainText("1 yes");
   await best.click();
   await expect(anna.getByRole("tab", { name: "Everyone" })).toHaveAttribute("aria-selected", "true");
   await expect(anna.locator('button[data-day][data-selected="true"]')).toBeVisible();
@@ -223,6 +224,60 @@ test("the page follows the browser's language, and the footer is small away from
   await expect(footer).toBeVisible();
   const logo = (await page.locator("footer svg").boundingBox())!;
   expect(logo.height).toBeLessThanOrEqual(16);
+});
+
+test("right-to-left languages mirror the page and keep working", async ({ page, browser }) => {
+  const url = await createGroup(page, `Trip ${Date.now()}`);
+  const context = await browser.newContext({ locale: "ar-EG", timezoneId: "Africa/Cairo", viewport: { width: 390, height: 780 } });
+  const arabic = await context.newPage();
+  await arabic.goto(url);
+  await expect(arabic.locator("html")).toHaveAttribute("dir", "rtl");
+  await arabic.locator("#your-name").fill("Ali");
+  await arabic.locator('button[type="submit"]').click();
+
+  // The calendar runs from right to left, on the Gregorian calendar, in Latin digits.
+  const days = openDays(arabic);
+  await expect(days.first()).toBeVisible({ timeout: 20_000 });
+  let row = 0;
+  while ((await days.nth(row).boundingBox())!.y !== (await days.nth(row + 1).boundingBox())!.y) row++;
+  expect((await days.nth(row).boundingBox())!.x).toBeGreaterThan((await days.nth(row + 1).boundingBox())!.x);
+  await expect(arabic.locator("header bdi").first()).toHaveText("whenucan?");
+  // Weekday names fit their columns.
+  const labels = arabic.locator("section .grid > div.text-center");
+  await expect(labels).toHaveCount(7);
+  for (const box of await labels.evaluateAll((cells) => cells.map((cell) => cell.scrollWidth - cell.clientWidth))) expect(box).toBeLessThanOrEqual(0);
+  const heading = await arabic.locator("section h3").first().innerText();
+  expect(heading).toContain(new Date().getFullYear().toString());
+
+  // Marking days works, and the arrow key moves in the direction it points.
+  await days.nth(row).click();
+  await expect(days.nth(row)).toHaveAttribute("data-vote", "yes");
+  await days.nth(row).focus();
+  await arabic.keyboard.press("ArrowLeft");
+  await expect(days.nth(row + 1)).toBeFocused();
+  expect(await arabic.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+});
+
+test("languages with their own calendars still show Gregorian dates", async ({ browser }) => {
+  for (const [locale, code] of [["fa-IR", "fa"], ["th-TH", "th"]]) {
+    const page = await (await browser.newContext({ locale })).newPage();
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("lang", locale);
+    const month = await page.locator("section h3").first().innerText();
+    expect([code, month]).toEqual([code, expect.stringContaining(new Date().getFullYear().toString())]);
+  }
+});
+
+test("Japanese uses the circle, triangle and cross marks", async ({ page, browser }) => {
+  const url = await createGroup(page, `Trip ${Date.now()}`);
+  const japanese = await (await browser.newContext({ locale: "ja-JP" })).newPage();
+  await japanese.goto(url);
+  await japanese.locator("#your-name").fill("Aoi");
+  await japanese.locator('button[type="submit"]').click();
+  await japanese.getByRole("radio", { name: "△" }).click();
+  const day = openDays(japanese).first();
+  await day.click();
+  await expect(day).toHaveAttribute("data-vote", "ok");
 });
 
 test("the organiser can remove people and replace the link", async ({ page, browser }) => {

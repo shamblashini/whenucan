@@ -51,8 +51,8 @@ Most people will open the link from a group chat. Marking days works with a thum
 ## What's in it
 
 - **No accounts for guests.** Only the organiser signs in. The same name on another device is the same person.
-- **25 European languages plus English.** The app follows the browser's language. [Add yours](#add-a-language).
-- **Your clock format.** 24-hour time in Europe and wherever the language uses it. Dates follow the language too.
+- **44 languages.** The app follows the browser's language, including right-to-left layouts for Arabic, Hebrew and Persian. [Add yours](CONTRIBUTING.md#add-a-language).
+- **Your clock format.** 24-hour time in Europe and wherever the language uses it. Dates follow the language too, always on the Gregorian calendar.
 - **Calendars.** Add any proposed time to Google Calendar, Apple Calendar, Outlook or any app that opens `.ics` files, in the group's time zone.
 - **Live updates.** Other people's answers appear within seconds, with no reload.
 - **Abuse protection.** Invisible Cloudflare Turnstile, rate limits and caps on people, proposals and groups.
@@ -176,9 +176,9 @@ Cloudflare creates the DNS record and certificate for your domain on the first d
 - Per-group and per-person caps: `src/shared/limits.ts`
 - Rate limits and the cleanup schedule: `wrangler.jsonc`
 
-## Add a language
+## Contributing
 
-Copy `src/client/i18n/locales/de.ts` to `<language code>.ts` in the same folder and translate the values. The app finds the new file by itself. `pnpm test` checks that every key, placeholder and plural form is there. Corrections to existing translations are welcome too: they were machine-translated and no native speaker has reviewed them yet.
+Translation fixes are the most useful contribution: every language was machine-translated, and no native speaker has reviewed them yet. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to fix a translation, add a language or change the code.
 
 ## Privacy requests
 

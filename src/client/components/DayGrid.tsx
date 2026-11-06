@@ -119,7 +119,8 @@ export function DayGrid(props: Props) {
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, day: string) => {
-    const moves: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+    const forward = document.documentElement.dir === "rtl" ? -1 : 1;
+    const moves: Record<string, number> = { ArrowLeft: -forward, ArrowRight: forward, ArrowUp: -7, ArrowDown: 7 };
     const move = moves[event.key];
     if (!move) return;
     event.preventDefault();
@@ -142,8 +143,8 @@ export function DayGrid(props: Props) {
           <section key={month} aria-label={formatMonth(month)}>
             <h3 className="mb-1.5 font-bold">{formatMonth(month)}</h3>
             <div className="grid grid-cols-7 gap-1" role="presentation">
-              {labels.map((label) => (
-                <div key={label} className="pb-0.5 text-center text-sm text-soft">
+              {labels.map((label, index) => (
+                <div key={index} className="pb-0.5 text-center text-sm text-soft">
                   {label}
                 </div>
               ))}

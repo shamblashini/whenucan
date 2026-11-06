@@ -9,7 +9,7 @@ import { DateRangePicker, type Range } from "../components/DateRangePicker";
 import { DayGrid, MarkerTray, type Tally } from "../components/DayGrid";
 import { ConfirmButton, Glyph, ShareLink, Sheet, SiteFooter, Spinner, Wordmark, shareUrl, useTitle, useToast } from "../components/ui";
 import {
-  VOTES, formatDayLong, formatDayNumber, formatMonthShort, formatProposalTime, formatRangeDays, formatWeekday, googleCalendarUrl, localToday,
+  VOTES, formatDayLong, formatList, formatDayNumber, formatMonthShort, formatProposalTime, formatRangeDays, formatWeekday, googleCalendarUrl, localToday,
   timezoneLabel, viewerTimezone, voteLabel,
 } from "../format";
 import { t } from "../i18n";
@@ -151,7 +151,7 @@ function JoinScreen({ meta, notice, onJoined }: { meta: GroupMeta; notice: strin
     <>
       <main className="mx-auto max-w-xl px-4 py-5">
         <Wordmark />
-        <h1 className="wordmark mt-14 mb-2 text-[clamp(2.5rem,10vw,4.5rem)] leading-none break-words">{meta.name}</h1>
+        <h1 className="wordmark mt-14 mb-2 text-[clamp(2.5rem,10vw,4.5rem)] leading-none break-words"><bdi>{meta.name}</bdi></h1>
         <p className="mb-2 text-lg font-semibold">{formatRangeDays(meta.startDate, meta.endDate)}</p>
         {meta.description && <p className="mb-2 text-lg">{meta.description}</p>}
         <form onSubmit={submit} className="mt-8">
@@ -161,6 +161,7 @@ function JoinScreen({ meta, notice, onJoined }: { meta: GroupMeta; notice: strin
           <div className="flex gap-2">
             <input
               id="your-name"
+              dir="auto"
               className="field text-lg"
               autoFocus
               autoComplete="given-name"
@@ -288,7 +289,7 @@ function Planner({
 
       <main className="mx-auto max-w-6xl px-4 pt-6">
         <div className="mb-6">
-          <h1 className="wordmark text-[clamp(2.25rem,7vw,4rem)] leading-none break-words">{group.name}</h1>
+          <h1 className="wordmark text-[clamp(2.25rem,7vw,4rem)] leading-none break-words"><bdi>{group.name}</bdi></h1>
           <p className="mt-2 text-lg font-semibold">
             {t("group.summary", { range: formatRangeDays(group.startDate, group.endDate), count: state.participants.length })}
           </p>
@@ -453,8 +454,8 @@ function Planner({
 }
 
 function namesText(names: string[]): string {
-  if (names.length <= 3) return names.join(", ");
-  return t("best.namesMore", { names: names.slice(0, 3).join(", "), count: names.length - 3 });
+  if (names.length <= 3) return formatList(names);
+  return t("best.namesMore", { names: formatList(names.slice(0, 3)), count: names.length - 3 });
 }
 
 function BestDays({
@@ -476,7 +477,7 @@ function BestDays({
           const can = tally.yes + tally.ok;
           const everyone = people.length > 1 && can === people.length;
           const details = [
-            [tally.yes && t("best.yesCount", { count: tally.yes }), tally.ok && t("best.okCount", { count: tally.ok })].filter(Boolean).join(", "),
+            formatList([tally.yes ? t("best.yesCount", { count: tally.yes }) : "", tally.ok ? t("best.okCount", { count: tally.ok }) : ""].filter(Boolean)),
             tally.no > 0 && t("best.cant", { names: namesText(said("no")) }),
             waiting.length > 0 && t("best.waiting", { names: namesText(waiting) }),
           ].filter(Boolean);
@@ -505,7 +506,11 @@ function BestDays({
                     )}
                     {waiting.map((name) => <span key={name} className="who-waiting" />)}
                   </span>
-                  <span className="block text-soft">{details.join(". ")}</span>
+                  {details.map((detail) => (
+                    <span key={detail as string} className="block text-soft">
+                      {detail}
+                    </span>
+                  ))}
                 </span>
               </button>
             </li>
@@ -546,13 +551,13 @@ function DayDetail({ day, state, onPropose }: { day: string; state: GroupState; 
         {VOTES.map((value) => (
           <div key={value} className="flex gap-2">
             <dt className="w-14 shrink-0 font-semibold">{voteLabel(value)}</dt>
-            <dd>{byVote(value).join(", ") || <span className="text-soft">{t("day.nobody")}</span>}</dd>
+            <dd>{formatList(byVote(value)) || <span className="text-soft">{t("day.nobody")}</span>}</dd>
           </div>
         ))}
         {waiting.length > 0 && (
           <div className="flex gap-2 text-soft">
             <dt className="w-14 shrink-0 font-semibold">{t("day.noAnswer")}</dt>
-            <dd>{waiting.join(", ")}</dd>
+            <dd>{formatList(waiting)}</dd>
           </div>
         )}
       </dl>
@@ -619,14 +624,14 @@ function ProposalRow({
                 <span className={`inline-block h-2.5 w-2.5 rounded-sm bg-${value}`} />
                 {voteLabel(value)}
               </dt>
-              <dd>{people.join(", ")}</dd>
+              <dd>{formatList(people)}</dd>
             </div>
           ) : null;
         })}
         {waiting.length > 0 && (
           <div className="flex gap-1.5 text-soft">
             <dt>{t("proposal.noAnswer")}</dt>
-            <dd>{waiting.join(", ")}</dd>
+            <dd>{formatList(waiting)}</dd>
           </div>
         )}
       </dl>
@@ -702,6 +707,7 @@ function ProposalForm({
           </label>
           <input
             id="proposal-title"
+            dir="auto"
             className="field"
             maxLength={LIMITS.proposalTitleLength}
             placeholder={t("form.planPlaceholder")}
@@ -847,13 +853,13 @@ function OrganiserSheet({
           <label className="label" htmlFor="edit-name">
             {t("org.nameLabel")}
           </label>
-          <input id="edit-name" className="field" required maxLength={LIMITS.groupNameLength} value={name} onChange={(e) => setName(e.target.value)} />
+          <input id="edit-name" dir="auto" className="field" required maxLength={LIMITS.groupNameLength} value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div>
           <label className="label" htmlFor="edit-note">
             {t("org.noteLabel")}
           </label>
-          <textarea id="edit-note" className="field" rows={2} maxLength={LIMITS.descriptionLength} value={description} onChange={(e) => setDescription(e.target.value)} />
+          <textarea id="edit-note" dir="auto" className="field" rows={2} maxLength={LIMITS.descriptionLength} value={description} onChange={(e) => setDescription(e.target.value)} />
         </div>
         <div>
           <span className="label">{t("org.dates")}</span>

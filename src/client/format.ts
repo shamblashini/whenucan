@@ -3,8 +3,10 @@ import { localeTag, t } from "./i18n";
 
 const utc = (value: string) => new Date(value.length === 10 ? `${value}T00:00:00Z` : `${value}:00Z`);
 
+// The calendar grid is Gregorian, so dates must be too, even where a language defaults to another
+// calendar (Persian and Thai do). Latin digits match the numbers in the grid and in the translations.
 const format = (value: string, options: Intl.DateTimeFormatOptions) =>
-  new Intl.DateTimeFormat(localeTag(), { timeZone: "UTC", ...options }).format(utc(value));
+  new Intl.DateTimeFormat(localeTag(), { timeZone: "UTC", calendar: "gregory", numberingSystem: "latn", ...options }).format(utc(value));
 
 export const formatDay = (day: string) => format(day, { weekday: "short", day: "numeric", month: "short" });
 export const formatDayLong = (day: string) => format(day, { weekday: "long", day: "numeric", month: "long" });
@@ -36,8 +38,8 @@ export function formatRangeDays(start: string, end: string): string {
 
 export function formatProposalTime(startsAt: string, endsAt: string): string {
   const sameDay = startsAt.slice(0, 10) === endsAt.slice(0, 10);
-  const start = `${formatDay(startsAt.slice(0, 10))}, ${formatTime(startsAt)}`;
-  return t("date.range", { start, end: sameDay ? formatTime(endsAt) : `${formatDay(endsAt.slice(0, 10))}, ${formatTime(endsAt)}` });
+  const start = formatList([formatDay(startsAt.slice(0, 10)), formatTime(startsAt)]);
+  return t("date.range", { start, end: sameDay ? formatTime(endsAt) : formatList([formatDay(endsAt.slice(0, 10)), formatTime(endsAt)]) });
 }
 
 export function localToday(): string {
@@ -62,16 +64,23 @@ export function firstWeekday(): number {
 }
 
 export function weekdayLabels(first: number): string[] {
-  const labels: string[] = [];
-  for (let i = 0; i < 7; i++) {
+  const labels = (weekday: "short" | "narrow") =>
     // 2 January 2000 was a Sunday.
-    labels.push(format(`2000-01-${String(2 + ((first + i) % 7)).padStart(2, "0")}`, { weekday: "short" }));
-  }
-  return labels;
+    Array.from({ length: 7 }, (_, i) => format(`2000-01-${String(2 + ((first + i) % 7)).padStart(2, "0")}`, { weekday }));
+  const short = labels("short");
+  // Some languages, like Arabic, have no short names that fit a calendar column.
+  return short.some((label) => label.length > 5) ? labels("narrow") : short;
 }
 
 export const voteLabel = (value: Vote) => t(`vote.${value}`);
 export const VOTES: Vote[] = ["yes", "ok", "no"];
+
+const LIST_SEPARATORS: Record<string, string> = { ar: "، ", fa: "، ", ja: "、", zh: "、" };
+
+/** Joins items with the comma the page's language uses. */
+export function formatList(items: string[]): string {
+  return items.join(LIST_SEPARATORS[localeTag().split("-")[0]] ?? ", ");
+}
 
 export function timezoneLabel(timezone: string): string {
   return (timezone.split("/").pop() ?? timezone).replaceAll("_", " ");

@@ -52,19 +52,19 @@ export function DateRangePicker({ value, onChange, minDay }: { value: Range; onC
       </div>
       <div className="rounded-lg border-[1.5px] border-rule bg-sheet p-2.5">
         <div className="mb-1 flex items-center justify-between">
-          <button type="button" className="btn btn-quiet min-w-11 text-2xl leading-none no-underline" aria-label={t("picker.prevMonthLabel")} disabled={month <= firstOfMonth(min)} onClick={() => setMonth(addMonths(month, -1))}>
+          <button type="button" className="btn btn-quiet min-w-11 text-2xl leading-none no-underline rtl:rotate-180" aria-label={t("picker.prevMonthLabel")} disabled={month <= firstOfMonth(min)} onClick={() => setMonth(addMonths(month, -1))}>
             ‹
           </button>
           <span className="font-bold" aria-live="polite">
             {formatMonth(month)}
           </span>
-          <button type="button" className="btn btn-quiet min-w-11 text-2xl leading-none no-underline" aria-label={t("picker.nextMonthLabel")} onClick={() => setMonth(addMonths(month, 1))}>
+          <button type="button" className="btn btn-quiet min-w-11 text-2xl leading-none no-underline rtl:rotate-180" aria-label={t("picker.nextMonthLabel")} onClick={() => setMonth(addMonths(month, 1))}>
             ›
           </button>
         </div>
         <div className="grid grid-cols-7" onPointerLeave={() => setHover(null)}>
-          {labels.map((label) => (
-            <div key={label} className="pb-1 text-center text-sm text-soft">
+          {labels.map((label, index) => (
+            <div key={index} className="pb-1 text-center text-sm text-soft">
               {label}
             </div>
           ))}

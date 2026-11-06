@@ -69,6 +69,7 @@ export function NewGroup() {
             </label>
             <input
               id="group-name"
+              dir="auto"
               className="field"
               required
               autoFocus
@@ -84,6 +85,7 @@ export function NewGroup() {
             </label>
             <textarea
               id="group-note"
+              dir="auto"
               className="field"
               rows={2}
               maxLength={LIMITS.descriptionLength}

@@ -63,6 +63,11 @@ body {
   width: 100%;
 }
 
+/* Tight letter-spacing breaks up connected scripts and crowds their marks. */
+:is(:lang(ar), :lang(fa), :lang(hi), :lang(th)) * {
+  letter-spacing: normal !important;
+}
+
 :focus-visible {
   outline: 3px solid var(--ink);
   outline-offset: 2px;
@@ -147,6 +152,14 @@ body {
     font-weight: 600;
   }
 
+  /* In Japanese and Korean the label is itself the symbol, so the buttons don't repeat it as an icon. */
+  :is(:lang(ja), :lang(ko)) :is(.pen, .vote) svg {
+    display: none;
+  }
+  :is(:lang(ja), :lang(ko)) :is(.pen, .vote) {
+    font-size: 1.3rem;
+  }
+
   /* Marker tray: the three pens you choose between. */
   .pen {
     position: relative;
@@ -217,7 +230,7 @@ body {
   .day-num {
     position: absolute;
     top: 0.2rem;
-    left: 0.35rem;
+    inset-inline-start: 0.35rem;
     z-index: 2;
     font-size: 0.95rem;
     line-height: 1.2;
@@ -229,7 +242,7 @@ body {
   }
   .day-glyph {
     position: absolute;
-    right: 0.25rem;
+    inset-inline-end: 0.25rem;
     top: 0.25rem;
     z-index: 2;
     width: 0.85rem;
@@ -264,6 +277,12 @@ body {
   .mark-no {
     background:
       linear-gradient(to bottom right, transparent calc(50% - 1.5px), var(--on-mark) calc(50% - 1.5px), var(--on-mark) calc(50% + 1.5px), transparent calc(50% + 1.5px)),
+      var(--no);
+  }
+  /* The cross-out stays clear of the day number, which moves to the other corner in right-to-left pages. */
+  [dir="rtl"] .mark-no {
+    background:
+      linear-gradient(to bottom left, transparent calc(50% - 1.5px), var(--on-mark) calc(50% - 1.5px), var(--on-mark) calc(50% + 1.5px), transparent calc(50% + 1.5px)),
       var(--no);
   }
   .day:has(.mark) .day-num {
@@ -304,14 +323,14 @@ body {
   /* A cell can be anything from empty to full, so its text sits on its own small label. */
   .day:has(.stack) .day-num {
     top: 0.15rem;
-    left: 0.15rem;
+    inset-inline-start: 0.15rem;
     padding: 0 0.2rem;
     background: var(--sheet);
     border-radius: 0.2rem;
   }
   .day-count {
     position: absolute;
-    right: 0.15rem;
+    inset-inline-end: 0.15rem;
     bottom: 0.15rem;
     z-index: 2;
     padding: 0 0.2rem;
@@ -360,7 +379,7 @@ body {
     align-items: center;
     gap: 0.9rem;
     padding: 0.75rem 0.25rem;
-    text-align: left;
+    text-align: start;
     cursor: pointer;
   }
   .best-day:hover .leaf {

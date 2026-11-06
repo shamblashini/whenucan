@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { Link } from "react-router";
 import type { Vote } from "@shared/types";
 import { useApp } from "../App";
-import { t } from "../i18n";
+import { localeTag, t } from "../i18n";
 
 export function useTitle(title: string): void {
   useEffect(() => {
@@ -13,15 +13,17 @@ export function useTitle(title: string): void {
 export function Wordmark({ className = "text-xl" }: { className?: string }) {
   return (
     <Link to="/" className={`wordmark no-underline ${className}`} aria-label={t("common.home")}>
-      whenucan?
+      <bdi>whenucan?</bdi>
     </Link>
   );
 }
 
 export function Glyph({ value, className }: { value: Vote; className?: string }) {
+  // Japanese and Korean schedules conventionally mark days with these three shapes.
+  const shapes = /^(ja|ko)\b/.test(localeTag());
   const paths: Record<Vote, string> = {
-    yes: "M3 8.5 6.5 12 13 4",
-    ok: "M2.5 9.5c2-3 3.5-3 5.5-1.2s3.5 1.8 5.5-1.3",
+    yes: shapes ? "M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z" : "M3 8.5 6.5 12 13 4",
+    ok: shapes ? "M8 2.5 14 13H2z" : "M2.5 9.5c2-3 3.5-3 5.5-1.2s3.5 1.8 5.5-1.3",
     no: "M4 4l8 8M12 4l-8 8",
   };
   return (
@@ -145,7 +147,7 @@ export function ShareLink({ slug, groupName }: { slug: string; groupName: string
   const canShare = typeof navigator.share === "function" && matchMedia("(pointer: coarse)").matches;
   return (
     <div>
-      <input ref={input} className="field mb-2 font-medium" readOnly value={url} aria-label={t("share.label")} onFocus={(e) => e.target.select()} />
+      <input ref={input} dir="ltr" className="field mb-2 font-medium" readOnly value={url} aria-label={t("share.label")} onFocus={(e) => e.target.select()} />
       <div className="flex flex-wrap gap-2">
         <button type="button" className="btn btn-primary grow" onClick={copy}>
           {t("share.copy")}

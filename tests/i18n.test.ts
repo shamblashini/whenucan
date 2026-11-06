@@ -56,6 +56,16 @@ describe("pickLanguage", () => {
   it("respects a language the browser prefers over Russian", () => {
     expect(pickLanguage(["de-DE", "ru-RU"], codes)).toEqual({ code: "de", tag: "de-DE" });
   });
+  it("picks the Chinese translation from the script or region", () => {
+    const chinese = ["zh-Hans", "zh-Hant"];
+    for (const tag of ["zh", "zh-CN", "zh-SG", "zh-Hans-CN"]) expect(pickLanguage([tag], chinese).code).toBe("zh-Hans");
+    for (const tag of ["zh-TW", "zh-HK", "zh-MO", "zh-Hant", "zh-Hant-HK"]) expect(pickLanguage([tag], chinese).code).toBe("zh-Hant");
+  });
+  it("understands old language codes", () => {
+    expect(pickLanguage(["iw-IL"], ["he"]).code).toBe("he");
+    expect(pickLanguage(["in-ID"], ["id"]).code).toBe("id");
+    expect(pickLanguage(["tl-PH"], ["fil"]).code).toBe("fil");
+  });
   it("treats all Norwegian tags as one language", () => {
     expect(pickLanguage(["nn-NO"], codes).code).toBe("nb");
     expect(pickLanguage(["no"], codes).code).toBe("nb");

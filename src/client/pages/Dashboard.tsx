@@ -84,7 +84,7 @@ export function Dashboard() {
                     </Link>
                     <p className="text-soft">
                       {t("dash.summary", { range: formatRangeDays(group.startDate, group.endDate), count: group.people })}
-                      {over && `. ${t("dash.deletedOn", { date: formatShort(addDays(group.endDate, LIMITS.retentionDays + 1)) })}`}
+                      {over && <span className="block">{t("dash.deletedOn", { date: formatShort(addDays(group.endDate, LIMITS.retentionDays + 1)) })}</span>}
                     </p>
                   </div>
                   <button type="button" className="btn btn-plain" onClick={() => copy(group.slug)}>

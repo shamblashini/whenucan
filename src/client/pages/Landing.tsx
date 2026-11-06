@@ -109,7 +109,7 @@ export function Landing() {
   return (
     <>
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <span className="wordmark text-xl">whenucan?</span>
+        <bdi className="wordmark text-xl">whenucan?</bdi>
         {user?.groupCount === 0 && (
           <Link to="/dashboard" className="btn btn-quiet">
             {t("landing.account")}
@@ -118,7 +118,7 @@ export function Landing() {
       </header>
       <main className="mx-auto grid max-w-6xl items-start gap-10 px-4 pt-4 lg:grid-cols-[1fr_27rem] lg:pt-12">
         <div>
-          <h1 className="wordmark mb-5 text-[clamp(3.5rem,13vw,8rem)] leading-[0.92]">when u can?</h1>
+          <h1 className="wordmark mb-5 text-[clamp(3.5rem,13vw,8rem)] leading-[0.92]"><bdi>when u can?</bdi></h1>
           <p className="mb-7 max-w-xl text-xl">
             {t("landing.tagline")}
           </p>
