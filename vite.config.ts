@@ -25,6 +25,8 @@ export default defineConfig({
   plugins: [siteOrigin(), react(), tailwindcss(), cloudflare(testState ? { persistState: { path: testState }, config: testConfig } : {})],
   cacheDir: testState ? "node_modules/.vite-e2e" : undefined,
   resolve: { alias: { "@shared": "/src/shared" } },
+  // Small files would otherwise be embedded as data: URLs, which the site's CSP refuses for fonts.
+  build: { assetsInlineLimit: 0 },
   // A fixed port, because Google sign-in needs an exact redirect URI.
   server: { port: 5188, strictPort: true },
   preview: { port: 5188, strictPort: true },
