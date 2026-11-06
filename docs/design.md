@@ -23,7 +23,7 @@
 | Organiser's identity | Same name screen as everyone, prefilled | One code path and one UI. The organiser's extra controls come from their session cookie. |
 | Live updates | Polling (4s, 12s when idle, paused when hidden) | The `version` column makes an unchanged poll one row read and a 304. WebSockets and Durable Objects are not needed at this scale. |
 | Languages | Own small `t()` with `Intl.PluralRules`, one lazy-loaded file per language | About 40 lines cover everything needed, and visitors download only their language. The API sends error keys, and the browser translates them. |
-| Clock format | 24-hour unless the language uses 12-hour and the time zone is outside Europe | Browsers only reveal a format through the language, and many people in Europe use an en-US browser. The time picker is two dropdowns, because a native time input ignores this choice. |
+| Clock format | 24-hour unless the language uses 12-hour and the time zone is outside Europe | Browsers only reveal a format through the language, and many people in Europe use an en-US browser. The time inputs in the form are native, so they follow the browser's own format, which a page cannot change. |
 | Database access | Plain D1 SQL | Six small tables do not justify an ORM. |
 
 Left out on purpose, to keep it simple: calendar export, locking a final date,

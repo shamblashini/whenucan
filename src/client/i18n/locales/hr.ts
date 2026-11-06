@@ -191,7 +191,6 @@ const messages: Messages = {
   "form.endDate": "Datum završetka",
   "form.from": "Od",
   "form.to": "Do",
-  "form.minutes": "Minute",
   "form.endsNextDay": "Završava sljedeći dan.",
   "form.inZone": "U vremenskoj zoni {zone}.",
   "form.sameDay": "Isti dan",

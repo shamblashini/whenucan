@@ -25,13 +25,7 @@ export function prefers24Hour(tag: string, timezone: string): boolean {
   return cycle !== "h11" && cycle !== "h12";
 }
 
-export const hourCycle = () => (prefers24Hour(localeTag(), viewerTimezone()) ? "h23" : "h12");
-
-/** The label for one hour in the time picker: "18" or "6 PM". */
-export function formatHour(hour: number): string {
-  const value = `2000-01-01T${String(hour).padStart(2, "0")}:00`;
-  return hourCycle() === "h23" ? String(hour).padStart(2, "0") : format(value, { hour: "numeric", hourCycle: "h12" });
-}
+const hourCycle = () => (prefers24Hour(localeTag(), viewerTimezone()) ? "h23" : "h12");
 
 export function formatRangeDays(start: string, end: string): string {
   if (start === end) return formatDay(start);

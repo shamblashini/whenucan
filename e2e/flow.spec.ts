@@ -166,9 +166,8 @@ test("a proposal can go to Google Calendar, with the clock format of the visitor
   await warsaw.getByRole("button", { name: "Continue" }).click();
   await warsaw.getByRole("button", { name: "Propose a time" }).click();
   await warsaw.getByLabel("What's the plan? (optional)").fill("Pizza");
-  await warsaw.getByLabel("From").selectOption("18");
-  await warsaw.getByLabel("Minutes").first().selectOption("30");
-  await warsaw.getByLabel("To", { exact: true }).selectOption("21");
+  await warsaw.getByLabel("From").fill("18:30");
+  await warsaw.getByLabel("To", { exact: true }).fill("21:00");
   await warsaw.getByRole("button", { name: "Add proposal" }).click();
   const row = warsaw.locator("li", { hasText: "Pizza" });
   await expect(row).toContainText("18:30");

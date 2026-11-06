@@ -9,7 +9,7 @@ import { DateRangePicker, type Range } from "../components/DateRangePicker";
 import { DayGrid, MarkerTray, type Tally } from "../components/DayGrid";
 import { ConfirmButton, Glyph, ShareLink, Sheet, SiteFooter, Spinner, Wordmark, shareUrl, useTitle, useToast } from "../components/ui";
 import {
-  VOTES, formatDayLong, formatHour, formatDayNumber, formatMonthShort, formatProposalTime, formatRangeDays, formatWeekday, googleCalendarUrl, localToday,
+  VOTES, formatDayLong, formatDayNumber, formatMonthShort, formatProposalTime, formatRangeDays, formatWeekday, googleCalendarUrl, localToday,
   timezoneLabel, viewerTimezone, voteLabel,
 } from "../format";
 import { t } from "../i18n";
@@ -635,29 +635,6 @@ function ProposalRow({
   );
 }
 
-/** Two dropdowns, because a native time input follows the browser's clock format and ignores ours. */
-function TimeSelect({ id, value, onChange }: { id: string; value: string; onChange: (next: string) => void }) {
-  const [hour, minute] = value.split(":");
-  return (
-    <div className="flex gap-1.5">
-      <select id={id} className="field min-w-0 flex-[3] px-2" value={hour} onChange={(e) => onChange(`${e.target.value}:${minute}`)}>
-        {Array.from({ length: 24 }, (_, h) => (
-          <option key={h} value={String(h).padStart(2, "0")}>
-            {formatHour(h)}
-          </option>
-        ))}
-      </select>
-      <select className="field min-w-0 flex-[2] px-2" aria-label={t("form.minutes")} value={minute} onChange={(e) => onChange(`${hour}:${e.target.value}`)}>
-        {Array.from({ length: 12 }, (_, m) => String(m * 5).padStart(2, "0")).map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
 function ProposalForm({
   slug, token, startDate, endDate, today, initialDay, timezone, onClose, onCreated, onSignedOut,
 }: {
@@ -760,13 +737,13 @@ function ProposalForm({
             <label className="label" htmlFor="proposal-from">
               {t("form.from")}
             </label>
-            <TimeSelect id="proposal-from" value={from} onChange={setFrom} />
+            <input id="proposal-from" className="field" type="time" required value={from} onChange={(e) => setFrom(e.target.value)} />
           </div>
           <div>
             <label className="label" htmlFor="proposal-to">
               {t("form.to")}
             </label>
-            <TimeSelect id="proposal-to" value={to} onChange={setTo} />
+            <input id="proposal-to" className="field" type="time" required value={to} onChange={(e) => setTo(e.target.value)} />
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2">

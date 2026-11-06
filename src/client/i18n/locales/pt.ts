@@ -191,7 +191,6 @@ const messages: Messages = {
   "form.endDate": "Data de fim",
   "form.from": "De",
   "form.to": "Até",
-  "form.minutes": "Minutos",
   "form.endsNextDay": "Termina no dia seguinte.",
   "form.inZone": "No fuso horário de {zone}.",
   "form.sameDay": "Mesmo dia",

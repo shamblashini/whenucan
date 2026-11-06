@@ -211,7 +211,6 @@ const messages: Messages = {
   "form.endDate": "Dátum konca",
   "form.from": "Od",
   "form.to": "Do",
-  "form.minutes": "Minúty",
   "form.endsNextDay": "Končí sa na druhý deň.",
   "form.inZone": "Časové pásmo: {zone}.",
   "form.sameDay": "Ten istý deň",

@@ -191,7 +191,6 @@ const messages: Messages = {
   "form.endDate": "Beigu datums",
   "form.from": "No",
   "form.to": "Līdz",
-  "form.minutes": "Minūtes",
   "form.endsNextDay": "Beidzas nākamajā dienā.",
   "form.inZone": "Laika josla: {zone}.",
   "form.sameDay": "Tā pati diena",

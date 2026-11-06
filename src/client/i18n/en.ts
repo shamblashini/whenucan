@@ -158,7 +158,6 @@ export const en = {
   "form.endDate": "End date",
   "form.from": "From",
   "form.to": "To",
-  "form.minutes": "Minutes",
   "form.endsNextDay": "Ends the next day.",
   "form.inZone": "In {zone} time.",
   "form.sameDay": "Same day",

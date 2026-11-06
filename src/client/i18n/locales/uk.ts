@@ -211,7 +211,6 @@ const messages: Messages = {
   "form.endDate": "Дата кінця",
   "form.from": "Від",
   "form.to": "До",
-  "form.minutes": "Хвилини",
   "form.endsNextDay": "Закінчується наступного дня.",
   "form.inZone": "Часовий пояс: {zone}.",
   "form.sameDay": "Той самий день",

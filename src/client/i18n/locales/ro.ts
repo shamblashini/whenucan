@@ -191,7 +191,6 @@ const messages: Messages = {
   "form.endDate": "Data de sfârșit",
   "form.from": "De la",
   "form.to": "Până la",
-  "form.minutes": "Minute",
   "form.endsNextDay": "Se termină a doua zi.",
   "form.inZone": "În fusul orar {zone}.",
   "form.sameDay": "Aceeași zi",

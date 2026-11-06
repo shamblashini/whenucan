@@ -191,7 +191,6 @@ const messages: Messages = {
   "form.endDate": "Крайна дата",
   "form.from": "От",
   "form.to": "До",
-  "form.minutes": "Минути",
   "form.endsNextDay": "Свършва на следващия ден.",
   "form.inZone": "В часова зона {zone}.",
   "form.sameDay": "Същия ден",

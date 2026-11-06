@@ -191,7 +191,6 @@ const messages: Messages = {
   "form.endDate": "Záró dátum",
   "form.from": "Kezdés",
   "form.to": "Vége",
-  "form.minutes": "Perc",
   "form.endsNextDay": "Másnap ér véget.",
   "form.inZone": "Időzóna: {zone}.",
   "form.sameDay": "Ugyanazon a napon",

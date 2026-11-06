@@ -191,7 +191,6 @@ const messages: Messages = {
   "form.endDate": "Pabaigos data",
   "form.from": "Nuo",
   "form.to": "Iki",
-  "form.minutes": "Minutės",
   "form.endsNextDay": "Baigiasi kitą dieną.",
   "form.inZone": "Laiko juosta: {zone}.",
   "form.sameDay": "Ta pati diena",

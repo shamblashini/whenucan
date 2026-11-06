@@ -191,7 +191,6 @@ const messages: Messages = {
   "form.endDate": "Lõppkuupäev",
   "form.from": "Algus",
   "form.to": "Lõpp",
-  "form.minutes": "Minutid",
   "form.endsNextDay": "Lõpeb järgmisel päeval.",
   "form.inZone": "Ajavöönd: {zone}.",
   "form.sameDay": "Sama päev",

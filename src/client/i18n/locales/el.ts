@@ -191,7 +191,6 @@ const messages: Messages = {
   "form.endDate": "Ημερομηνία λήξης",
   "form.from": "Από",
   "form.to": "Έως",
-  "form.minutes": "Λεπτά",
   "form.endsNextDay": "Τελειώνει την επόμενη μέρα.",
   "form.inZone": "Στη ζώνη ώρας {zone}.",
   "form.sameDay": "Ίδια μέρα",
