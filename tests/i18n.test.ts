@@ -39,15 +39,22 @@ describe("translations", () => {
 });
 
 describe("pickLanguage", () => {
-  const codes = ["de", "pt", "nb"];
+  const codes = ["de", "pt", "nb", "uk"];
   it("takes the first language with a translation and keeps its region", () => {
     expect(pickLanguage(["pt-BR", "de"], codes)).toEqual({ code: "pt", tag: "pt-BR" });
   });
   it("skips languages without a translation", () => {
-    expect(pickLanguage(["ru-RU", "de-AT"], codes)).toEqual({ code: "de", tag: "de-AT" });
+    expect(pickLanguage(["ja-JP", "de-AT"], codes)).toEqual({ code: "de", tag: "de-AT" });
   });
   it("falls back to English", () => {
-    expect(pickLanguage(["ru"], codes)).toEqual({ code: "en", tag: "en" });
+    expect(pickLanguage(["ja"], codes)).toEqual({ code: "en", tag: "en" });
+  });
+  it("gives Russian browsers Ukrainian, with Ukrainian dates", () => {
+    expect(pickLanguage(["ru-RU", "en-US"], codes)).toEqual({ code: "uk", tag: "uk" });
+    expect(pickLanguage(["ru"], codes)).toEqual({ code: "uk", tag: "uk" });
+  });
+  it("respects a language the browser prefers over Russian", () => {
+    expect(pickLanguage(["de-DE", "ru-RU"], codes)).toEqual({ code: "de", tag: "de-DE" });
   });
   it("treats all Norwegian tags as one language", () => {
     expect(pickLanguage(["nn-NO"], codes).code).toBe("nb");

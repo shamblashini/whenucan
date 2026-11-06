@@ -206,10 +206,11 @@ test("the page follows the browser's language, and the footer is small away from
   await expect(german.locator("html")).toHaveAttribute("lang", "de-DE");
   await expect(german.getByText("Send your group one link")).toHaveCount(0);
 
-  // There is no Russian translation, so the next choice is English.
+  // There is no Russian translation on purpose, so Russian browsers get Ukrainian.
   const russian = await (await browser.newContext({ locale: "ru-RU" })).newPage();
   await russian.goto("/");
-  await expect(russian.getByText("Send your group one link")).toBeVisible();
+  await expect(russian.locator("html")).toHaveAttribute("lang", "uk");
+  await expect(russian.getByText("Надішли групі одне посилання")).toBeVisible();
 
   const page = await (await browser.newContext({ locale: "en-US", viewport: { width: 390, height: 780 } })).newPage();
   await page.goto("/");

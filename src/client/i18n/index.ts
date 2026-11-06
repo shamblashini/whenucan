@@ -10,6 +10,9 @@ const available = Object.keys(locales).map((path) => path.slice("./locales/".len
 // Browsers report Norwegian in several ways.
 const ALIASES: Record<string, string> = { no: "nb", nn: "nb" };
 
+// There is no Russian translation on purpose. Russian browsers get Ukrainian, dates included.
+const REPLACEMENTS: Record<string, string> = { ru: "uk" };
+
 let messages: Messages = en;
 let tag = "en";
 
@@ -17,6 +20,8 @@ let tag = "en";
 export function pickLanguage(preferred: readonly string[], codes: readonly string[] = available): { code: string; tag: string } {
   for (const language of preferred) {
     const base = language.toLowerCase().split("-")[0];
+    const replacement = REPLACEMENTS[base];
+    if (replacement && codes.includes(replacement)) return { code: replacement, tag: replacement };
     const code = ALIASES[base] ?? base;
     if (code === "en" || codes.includes(code)) return { code, tag: language };
   }
